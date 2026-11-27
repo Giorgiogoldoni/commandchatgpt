@@ -203,6 +203,36 @@ html,body{background:var(--bg);font-size:12px;line-height:1.45}
 .advice-summary.green{background:#eaf7ef;border-left-color:#16834b;color:#12643b}.advice-summary.yellow{background:#fff5d8;border-left-color:#c58a00;color:#785500}.advice-summary.red{background:#fdecee;border-left-color:#c62635;color:#8e1824}
 .advice-card.green{border-left-color:#16834b;background:#f4fbf7}.advice-card.yellow{border-left-color:#c58a00;background:#fffdf6}.advice-card.red{border-left-color:#c62635;background:#fff6f6}
 .advice-card .advice-title{color:#59677b}
+
+/* COMMAND CENTER — gerarchia e leggibilità */
+:root{--accent:#9a6b00;--bg:#f3f5f9;--text:#172238;--text2:#53627a;--text3:#8290a5}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.5}
+#topbar{border-bottom:1px solid #dfe5ee;box-shadow:0 3px 14px rgba(20,35,60,.06)}
+.logo{font-family:Inter,system-ui,sans-serif;font-size:18px;font-weight:800;letter-spacing:1.5px}
+.page{max-width:1540px;gap:16px}
+#regime-banner{background:linear-gradient(115deg,#fff 0%,#fbfcff 100%);border:1px solid var(--border);border-left:5px solid var(--rc);box-shadow:0 5px 20px rgba(25,42,70,.055)}
+.regime-name{font-family:Inter,system-ui,sans-serif;font-size:40px;letter-spacing:-1px}
+.section{box-shadow:0 3px 13px rgba(25,42,70,.035);border:1px solid #e0e6ef}
+.section-head{min-height:43px}
+.section-title{font-family:Inter,system-ui,sans-serif;font-size:11px;font-weight:800;letter-spacing:1px}
+.advice-section{border:1px solid #d9c48e;border-top:3px solid var(--accent)}
+.advice-summary{font-size:14px;padding:16px 18px}
+.advice-card{min-height:128px;padding:14px;border-radius:10px}
+.advice-title{font-size:10px;letter-spacing:.8px}
+.advice-text{font-size:12px;line-height:1.65}
+.advice-card.action{border-left-width:5px}.advice-card.entry{border-left-width:5px}.advice-card.risk{border-left-width:5px}.advice-card.manage{border-left-width:5px}.advice-card.confirm{border-left-width:5px}
+.perf-pill,.kpi-card{box-shadow:0 2px 8px rgba(25,42,70,.035)}
+.auto-module{box-shadow:0 2px 10px rgba(25,42,70,.04)}
+.tb-btn{font-weight:650}
+.disclaimer{line-height:1.6}
+@media(max-width:700px){
+ .page{padding:9px 9px 28px}
+ .advice-summary{font-size:12px;padding:12px}
+ .advice-card{min-height:0}
+ .regime-name{font-size:34px}
+ .ts-item{font-size:9px}
+}
+
 </style>
 </head>
 <body>
@@ -219,9 +249,9 @@ html,body{background:var(--bg);font-size:12px;line-height:1.45}
     <div class="ts-item"><div class="ts-dot warn" id="ts-set-dot"></div><span id="ts-set">Set —</span></div>
   </div>
   <div class="topbar-right">
-    <a class="tb-btn" href="https://giorgiogoldoni.github.io/raptor-tematici/index_tematici.html" target="_blank">🎨 Tematici</a>
-    <a class="tb-btn" href="https://giorgiogoldoni.github.io/raptor-geografia/" target="_blank">🌍 Geografia</a>
-    <a class="tb-btn" href="https://giorgiogoldoni.github.io/raptor-settoriali/" target="_blank">🏭 Settoriali</a>
+    <a class="tb-btn" href="https://giorgiogoldoni.github.io/raptor-tematici/index_tematici.html" target="_blank" rel="noopener">🎨 Tematici</a>
+    <a class="tb-btn" href="https://giorgiogoldoni.github.io/geografiachatgpt/" target="_blank" rel="noopener">🌍 GeografiaChatGPT</a>
+    <a class="tb-btn" href="https://giorgiogoldoni.github.io/raptor-settoriali/" target="_blank" rel="noopener">🏭 Settoriali</a>
     <div class="tb-divider"></div>
     <button class="tb-btn primary" onclick="loadAll()">🔄 Aggiorna</button>
   </div>
@@ -341,7 +371,7 @@ html,body{background:var(--bg);font-size:12px;line-height:1.45}
 const RSE_JSON = 'https://giorgiogoldoni.github.io/RAPTOR_SCENARIO_ENGINE/data/market_data_rse.json';
 const GEO_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/data/bollettino_geografico.json';
 // Fonte ufficiale: repo sniperchatgpt / reports\nconst SNIPER_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json';
-// Feed generato e pubblicato dal workflow di bigchatgpt\nconst BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json';
+// Feed generato e pubblicato dal workflow di bigchatgpt\nconst BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json'; // feed reale: {gen, sistemi, righe}
 const TEM_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-tematici/main/tematici.json';
 const SET_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-settoriali/main/settoriali.json';
 const SIG_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-signal/main/data/signal.json';
@@ -395,8 +425,7 @@ function compositeClass(c){
 
 function renderAdvice(){
   const rawRegime=String(rseData?.meta?.regime||'N/D').toUpperCase();
-  const regimeAliases={'RALLENTAMENTO':'RALLENTAMENTO','ESPANSIONE':'ESPANSIONE'};
-  const sentiment=String(sigData?.composite||'N/D').toUpperCase();
+    const sentiment=String(sigData?.composite||'N/D').toUpperCase();
   const geoEdition=geoData?.editions?.[0]||{};
   const geoDate=geoEdition.date||'';
   const geoAge=geoDate?Math.floor((Date.now()-new Date(geoDate+'T23:59:59').getTime())/86400000):999;
@@ -422,9 +451,13 @@ function renderAdvice(){
   const geoCandidates=geoFresh?geoRows.slice(0,5):[];
   const sniperSignals=sniperData?.signals||[];
   const sniperNonLeveraged=sniperSignals.filter(x=>!String(x.category||'').includes('LEVA')&&!/\\b[3-5]x\\b|leverag|inverse|short/i.test(String(x.name||'')));
-  const bigBoll=bigData?.bollettino||bigData?.big||null;
-  const bigBuy=(bigBoll?.areas||[]).flatMap(a=>a.buy_candidates||[]);
-  const bigWatch=(bigBoll?.areas||[]).flatMap(a=>a.leaders||[]).filter(x=>x.buy_level==='WATCH');
+  const bigRows=Array.isArray(bigData?.righe)?bigData.righe:[];
+  const bigDate=bigData?.gen||'';
+  const bigAge=bigDate?Math.floor((Date.now()-new Date(bigDate.replace(' UTC','Z').replace(' ','T')).getTime())/86400000):999;
+  const bigFresh=bigRows.length>0&&bigAge<=2;
+  const bigActive=bigRows.filter(x=>['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase()));
+  const bigExit=bigRows.filter(x=>['ESCI','SELL','EXIT'].includes(String(x.sta||'').toUpperCase()));
+  const bigRecent=bigRows.slice().sort((a,b)=>String(b.u||'').localeCompare(String(a.u||''))).slice(0,4);
   let alerts=[],openPos=[];
   Object.values(temData?.groups||{}).forEach(g=>(g.positions||[]).forEach(p=>{openPos.push(p);if(p.target_hit||p.pre_alert)alerts.push((p.target_hit?'TARGET ':'PRE-ALERT ')+(p.ticker||p.label||'?'));}));
   Object.values(setData?.portfolios||{}).forEach(g=>(g.positions||[]).forEach(p=>{openPos.push(p);if(p.target_hit||p.pre_alert)alerts.push((p.target_hit?'TARGET ':'PRE-ALERT ')+(p.ticker||p.label||'?'));}));
@@ -433,6 +466,7 @@ function renderAdvice(){
   if(!rseFresh)stale.push('RSE');
   if(!geoFresh)stale.push('Geografia');
   if(!sniperFresh)stale.push('Sniper');
+  if(!bigFresh)stale.push('BIG');
   if(!sigData)stale.push('Sentiment');
   const geoText=geoFresh&&geoCandidates.length
     ?'Geografia aggiornata al '+geoDate+': '+geoCandidates.map(x=>x.ticker+' ('+Number(x.composite_momentum||0).toFixed(1)+'%)').join(', ')+'. Sono candidati di trend, NON ordini di acquisto.'
@@ -440,14 +474,14 @@ function renderAdvice(){
   const sniperText=sniperFresh
     ?'Sniper: '+sniperSignals.length+' segnali simulati (paper-only), '+sniperNonLeveraged.length+' non classificati come leva. Non sono ordini né conferme autonome di acquisto.'
     :'Sniper non aggiornato o non disponibile: segnali esclusi dai consigli.';
-  const bigText=bigBoll
-    ?'BIG bollettino: '+bigBuy.length+' BUY pienamente confermati e '+bigWatch.length+' WATCH da monitorare. I BUY richiedono conferme multiple; verificare data e strumenti prima di operare.'
-    :'BIG: non è disponibile un bollettino leggibile nel formato atteso; nessun conteggio BUY viene inventato.';
+  const bigText=bigFresh
+    ?'BIG aggiornato '+bigDate+': '+bigRows.length+' ETF nell’universo; '+bigActive.length+' con stato TIENI/BUY/HOLD e '+bigExit.length+' con stato di uscita. Sono stati del motore, non ordini automatici.'
+    :'BIG: feed assente, vuoto o più vecchio di 2 giorni. I conteggi non vengono usati per confermare ingressi.';
   const sentimentText=sentiment==='N/D'?'Sentiment non disponibile: non aggiunge conferma.':
     (sentiment.includes('RISK-OFF')||sentiment.includes('FEAR')||sentiment.includes('CAUTO'))?'Sentiment '+sentiment+': ulteriore conferma di prudenza.':
     sentiment.includes('RISK-ON')?'Sentiment '+sentiment+': elemento favorevole, ma non annulla il regime macro.':'Sentiment '+sentiment+': segnale misto, non sufficiente per autorizzare ingressi.';
   const summary=document.getElementById('advice-summary');
-  const tone=stale.length?'yellow':plan.tone;
+  const tone=plan.tone==='red'?'red':(stale.length?'yellow':plan.tone);
   const label={green:'FAVOREVOLE',yellow:'CAUTELA',red:'DIFESA'};
   summary.textContent=label[tone]+' · REGIME '+rawRegime+' — '+plan.headline+(stale.length?' Fonti da aggiornare: '+stale.join(', ')+'.':'');
   summary.className='advice-summary '+tone;
@@ -456,11 +490,11 @@ function renderAdvice(){
     {type:'entry',title:'2 · CANDIDATI, NON ORDINI',text:geoText+'<br>'+sniperText},
     {type:'risk',title:'3 · RISCHIO E CONTESTO',text:sentimentText+'<br>'+(riskSignals.length?riskSignals.join(' · '):'Dettaglio segnali RSE non disponibile.')},
     {type:'manage',title:'4 · CONTROLLO PORTAFOGLI',text:alerts.length?'Alert da verificare: '+alerts.slice(0,8).join(', ')+'.':openPos.length?openPos.length+' posizioni rilevate nei feed Tematici/Settoriali; nessun target/pre-alert segnalato. Verificare i singoli criteri di uscita.':'Feed posizioni Tematici/Settoriali vuoti o non disponibili: impossibile concludere che non ci siano posizioni.'},
-    {type:'confirm',title:'5 · CONFERMA BIG',text:bigText}
+    {type:'confirm',title:'5 · UNIVERSO BIGCHATGPT',text:bigText+(bigRecent.length?' Ultimi aggiornamenti: '+bigRecent.map(x=>(x.t||'?')+' '+(x.sta||'N/D')+' ('+(x.u||'—')+')').join(' · '):'')}
   ];
   document.getElementById('advice-grid').innerHTML=cards.map(c=>'<div class="advice-card '+c.type+'"><div class="advice-title">'+c.title+'</div><div class="advice-text">'+c.text+'</div></div>').join('');
   document.getElementById('advice-stamp').textContent='Analisi multi-feed · '+new Date().toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
-  document.getElementById('advice-foot').textContent='Regole trasparenti: RALLENTAMENTO non viene ricondotto a NEUTRO; feed vecchi esclusi dalla shortlist; segnali Sniper paper-only e BIG WATCH non equivalgono a BUY. Nessun ordine viene eseguito. Verificare prezzi, liquidità, costi e rischio prima di qualsiasi operazione.';
+  document.getElementById('advice-foot').textContent='Regole trasparenti: RALLENTAMENTO non viene ricondotto a NEUTRO; un feed vecchio non può migliorare il semaforo; Sniper è paper-only; gli stati BIG descrivono il motore e non sono ordini. Nessun ordine viene eseguito. Verificare prezzi, liquidità, costi e rischio prima di qualsiasi operazione.';
 }
 function renderSentiment(){
   const el=document.getElementById('sentiment-body');

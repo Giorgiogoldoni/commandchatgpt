@@ -860,27 +860,65 @@ function loadLocalSignals(){
   }).join('');
 }
 
-async function loadAll(){
-  document.getElementById('perf-updated').textContent='Caricamento...';
-  const [rse,geo,sniper,big,tem,set,sig]=await Promise.allSettled([
-    fetchJSON(RSE_JSON),fetchJSON(GEO_JSON),fetchJSON(SNIPER_JSON),fetchJSON(BIG_JSON),fetchJSON(TEM_JSON),fetchJSON(SET_JSON),fetchJSON(SIG_JSON)
-  ]);
-  rseData=rse.status==='fulfilled'?rse.value:null;
-  geoData=geo.status==='fulfilled'?geo.value:null;
-  sniperData=sniper.status==='fulfilled'?sniper.value:null;
-  bigData=big.status==='fulfilled'?big.value:null;
-  temData=tem.status==='fulfilled'?tem.value:null;
-  setData=set.status==='fulfilled'?set.value:null;
-  sigData=sig.status==='fulfilled'?sig.value:null;
-  if(rseData){renderRegime();renderMacro();renderProb();renderAlloc();}
-  else{
-    document.getElementById('regime-name').textContent='NEUTRO';
-    document.getElementById('regime-score').textContent='RSE non disponibile';
+function clearRemainingSpinners(){
+  document.querySelectorAll('.loading-spinner').forEach(sp=>{
+    const empty=sp.closest('.empty');
+    if(empty) empty.textContent='Dato non disponibile: verifica il feed o riprova al prossimo aggiornamento.';
+    else sp.remove();
+  });
+}
+function safeRender(label,fn){
+  try{fn();}
+  catch(err){
+    console.error('CommandChatGPT render '+label,err);
+    const targets={
+      regime:['regime-name','regime-score'],
+      macro:['macro-cards'],prob:['prob-list'],alloc:['alloc-body'],
+      sentiment:['sentiment-body'],autonomous:['auto-grid'],
+      advice:['advice-summary','advice-grid'],signals:['signals-list']
+    }[label]||[];
+    targets.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.textContent='Errore di visualizzazione: '+label+'. Riprova o controlla la console.';
+    });
   }
-  renderSentiment();
-  renderAutonomous();
-  renderAdvice();
-  loadLocalSignals();
+}
+async function loadAll(){
+  const stamp=document.getElementById('perf-updated');
+  if(stamp)stamp.textContent='Aggiornamento dati…';
+  try{
+    const [rse,geo,sniper,big,tem,set,sig]=await Promise.allSettled([
+      fetchJSON(RSE_JSON),fetchJSON(GEO_JSON),fetchJSON(SNIPER_JSON),fetchJSON(BIG_JSON),fetchJSON(TEM_JSON),fetchJSON(SET_JSON),fetchJSON(SIG_JSON)
+    ]);
+    rseData=rse.status==='fulfilled'?rse.value:null;
+    geoData=geo.status==='fulfilled'?geo.value:null;
+    sniperData=sniper.status==='fulfilled'?sniper.value:null;
+    bigData=big.status==='fulfilled'?big.value:null;
+    temData=tem.status==='fulfilled'?tem.value:null;
+    setData=set.status==='fulfilled'?set.value:null;
+    sigData=sig.status==='fulfilled'?sig.value:null;
+    if(rseData){
+      safeRender('regime',renderRegime);safeRender('macro',renderMacro);
+      safeRender('prob',renderProb);safeRender('alloc',renderAlloc);
+    }else{
+      document.getElementById('regime-name').textContent='N/D';
+      document.getElementById('regime-score').textContent='RSE non disponibile';
+      document.getElementById('macro-cards').textContent='RSE non disponibile';
+      document.getElementById('prob-list').textContent='RSE non disponibile';
+      document.getElementById('alloc-body').innerHTML='<tr><td colspan="3">RSE non disponibile</td></tr>';
+    }
+    safeRender('sentiment',renderSentiment);
+    safeRender('autonomous',renderAutonomous);
+    safeRender('advice',renderAdvice);
+    safeRender('signals',loadLocalSignals);
+    clearRemainingSpinners();
+    const failed=[['RSE',rse],['Geo',geo],['Sniper',sniper],['BIG',big],['Tematici',tem],['Settoriali',set],['Sentiment',sig]].filter(([,x])=>x.status==='rejected').map(([n])=>n);
+    if(stamp)stamp.textContent='Aggiornato '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+(failed.length?' · feed KO: '+failed.join(', '):' · tutti i feed raggiunti');
+  }catch(err){
+    console.error('CommandChatGPT loadAll',err);
+    clearRemainingSpinners();
+    if(stamp)stamp.textContent='Errore aggiornamento: '+(err?.message||'errore imprevisto');
+  }
 }
 loadAll();
 setInterval(loadAll,30*60*1000);

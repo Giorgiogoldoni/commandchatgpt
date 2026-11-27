@@ -151,6 +151,12 @@ def main():
     # Sniper is strictly paper-only and age-gated.
     sniper_age=age_days(sniper.get("generated_utc"))
     sniper_stale=sniper_age is None or sniper_age>1.5
+    big_age=age_days(big.get("gen"))
+    rotation_age=age_days(rot.get("generated"))
+    geo_age=age_days(ucits.get("generated_at"))
+    big_stale=big_age is None or big_age>1.5
+    rotation_stale=rotation_age is None or rotation_age>1.5
+    geo_stale=geo_age is None or geo_age>1.5
     tax_age=age_days(tax.get("as_of"))
     tax_stale=tax_age is None or tax_age>3
     # Recommendation gate: if a required feed is missing/stale, downgrade any BUY.
@@ -160,9 +166,13 @@ def main():
     if not statuses["ARRotation"]["ok"]: blockers.append("Feed ARRotation non disponibile: conferme di rotazione sospese.")
     if tax_stale: blockers.append("TAX: snapshot prezzi obsoleto; nessuna decisione sul portafoglio.")
     if sniper_stale: blockers.append("Sniper: segnali non aggiornati; esclusi dalle decisioni operative.")
-    if not statuses["BIGCHATGPT"]["ok"] or not statuses["GeografiaChatGPT"]["ok"] or not statuses["ARRotation"]["ok"]:
+    if big_stale: blockers.append("BIG: feed tecnico non aggiornato; BUY quantitativi sospesi.")
+    if rotation_stale: blockers.append("ARRotation: feed non aggiornato; conferme di rotazione sospese.")
+    if geo_stale: blockers.append("Geografia UCITS: ranking non aggiornato; segnali geografici sospesi.")
+    if not statuses["BIGCHATGPT"]["ok"] or not statuses["GeografiaChatGPT"]["ok"] or not statuses["ARRotation"]["ok"] or big_stale or rotation_stale or geo_stale:
         for r in recs:
             if r["label"]=="BUY": r["label"]="WATCHLIST"
+            elif r["label"]=="ACCUMULO" and (rotation_stale or geo_stale): r["label"]="WATCHLIST"
     buy_count=sum(1 for x in recs if x["label"]=="BUY")
     accum_count=sum(1 for x in recs if x["label"]=="ACCUMULO")
     report={
@@ -170,9 +180,9 @@ def main():
       "edition":"11:00" if local.hour==11 else ("23:00" if local.hour==23 else "STRAORDINARIA"),
       "market":{"regime":regime,"note":regime_note,"benchmark_return_20":median20,"category_count":len(cats),"positive_relative_categories":len(positive_cats),"top_categories":top_categories},
       "flows":{"as_of":flow_asof,"flow_usd":flow_usd,"flow_pct_assets":flow_total.get("flowPctOfStartNetAssets"),"inflows_usd":flow_total.get("inflowsUsd"),"outflows_usd":flow_total.get("outflowsUsd"),"funds_in":flow_total.get("fundsIn"),"funds_out":flow_total.get("fundsOut"),"quality":flow_quality},
-      "geography":{"generated_at":ucits.get("generated_at"),"latest_price_date":ucits.get("latest_price_date"),"trend_candidates":len(geo_rows),"top":recs},
-      "rotation":{"generated":rot.get("generated"),"latest_bar":rot.get("latest_bar"),"universe":rot.get("universe"),"eligible":rot.get("eligible"),"loaded":rot.get("tickers_loaded"),"candidate_count":(sel.get("riepilogo") or {}).get("candidati"),"exit_count":(sel.get("riepilogo") or {}).get("uscite"),"open_signals":(sel.get("riepilogo") or {}).get("segnalazioni_aperte"),"candidates":ar_candidates,"top_categories":top_categories},
-      "big":{"generated":big.get("gen"),"rows":len(big.get("righe",[]) or []),"systems":len(big.get("sistemi",[]) or []),"buy_count":buy_count,"accumulate_count":accum_count},
+      "geography":{"generated_at":ucits.get("generated_at"),"age_days":geo_age,"stale":geo_stale,"latest_price_date":ucits.get("latest_price_date"),"trend_candidates":len(geo_rows),"top":recs},
+      "rotation":{"generated":rot.get("generated"),"age_days":rotation_age,"stale":rotation_stale,"latest_bar":rot.get("latest_bar"),"universe":rot.get("universe"),"eligible":rot.get("eligible"),"loaded":rot.get("tickers_loaded"),"candidate_count":(sel.get("riepilogo") or {}).get("candidati"),"exit_count":(sel.get("riepilogo") or {}).get("uscite"),"open_signals":(sel.get("riepilogo") or {}).get("segnalazioni_aperte"),"candidates":ar_candidates,"top_categories":top_categories},
+      "big":{"generated":big.get("gen"),"age_days":big_age,"stale":big_stale,"rows":len(big.get("righe",[]) or []),"systems":len(big.get("sistemi",[]) or []),"buy_count":buy_count,"accumulate_count":accum_count},
       "sniper":{"generated":sniper.get("generated_utc"),"paper_only":bool(sniper.get("paper_only",True)),"signal_count":sniper.get("signal_count",len(sniper.get("signals",[]) or [])),"age_days":sniper_age,"rrg_generated":rrg.get("generated_utc"),"rrg_instruments":rrg.get("instruments"),"rrg_fetch_ok":(rrg.get("fetch_status") or {}).get("ok"),"rrg_fetch_total":(rrg.get("fetch_status") or {}).get("total")},
       "tax":{"as_of":tax.get("as_of"),"status":tax.get("status"),"stale":tax_stale,"age_days":tax_age,"instrument_count":len(instruments.get("instruments",[]) or []),"watchlist_count":len(watch.get("tickers",[]) or []),"portfolio_positions":len(portfolio.get("positions",[]) or []),"strategy":strat.get("model_name"),"roc":(strat.get("parameters") or {}).get("roc_period"),"ma_fast":(strat.get("parameters") or {}).get("moving_average_fast"),"ma_slow":(strat.get("parameters") or {}).get("moving_average_slow")},
       "recommendations":recs,"buy_count":buy_count,"accumulate_count":accum_count,"blockers":blockers,

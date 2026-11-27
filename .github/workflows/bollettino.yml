@@ -1,12 +1,6 @@
 name: Bollettino CommandChatGPT
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'index.html'
-      - 'scripts/**'
-      - '.github/workflows/bollettino.yml'
   schedule:
     # GitHub usa UTC. Le quattro finestre consentono di mantenere le 11 e le 23 italiane
     # sia in ora solare sia in ora legale; il controllo locale evita doppie edizioni.

@@ -48,7 +48,7 @@ footer{text-align:center;color:var(--muted);font-size:10px;margin-top:18px}
 <div class="grid">
 <section class="card span-12" id="market">
 <div class="hero"><div><div class="hint">01 · REGIME DI MERCATO</div><div class="regime" id="regime">—</div><div class="regime-note" id="regime-note">—</div></div><div class="edition" id="edition">—</div></div>
-<div class="metrics" id="market-metrics"></div>
+<div class="metrics" id="market-metrics"></div><div id="benchmark-panel"></div>
 </section>
 <section class="card span-12" id="buy">
 <h2>02 · Decisioni operative</h2><p class="hint">Le raccomandazioni richiedono conferme incrociate. Nessun segnale isolato viene trasformato in acquisto.</p>
@@ -96,10 +96,12 @@ function renderRecommendations(r){
  if(!arr.length)return '<div class="warning">Nessun acquisto confermato. I motori non hanno prodotto una convergenza sufficiente oppure manca una fonte necessaria.</div>';
  return arr.slice(0,8).map(x=>{
   const kind=x.label==="BUY"?"ok":x.label==="ACCUMULO"?"blue":x.label==="ATTESA"?"bad":"warn";
-  const action=x.label==="ACCUMULO"?"Ingresso progressivo; evitare di inseguire sedute euforiche":x.label==="BUY"?"Segnale d'acquisto: verificare prezzo e rischio prima dell'ingresso":x.label==="ATTESA"?"Nessun ingresso finché non torna la conferma":"Monitorare; attendere una conferma di rotazione";
+  const action=x.label==="ACCUMULO"?"Ingresso progressivo solo nella fascia indicata":x.label==="BUY"?"Convergenza tecnica e prezzo in zona d'ingresso":x.label==="ATTESA"?"Nessun ingresso finché non torna la conferma":"Monitorare; non inseguire il prezzo";
   const price=x.price===null||x.price===undefined?"—":n(x.price,2);
   const rotation=x.rotation_ret20===null||x.rotation_ret20===undefined?"non confermata":n(x.rotation_ret20,2)+"% / RS "+n(x.rotation_rel20,2)+"%";
-  return '<article class="rec"><div class="rec-top"><span class="ticker">'+esc(x.ticker)+'</span>'+pill(x.label,kind)+'</div><div class="rec-name">'+esc(x.name)+'</div><div class="rec-meta"><span>'+esc(x.geography||"Area non classificata")+'</span><span>Prezzo rif. '+esc(price)+' ('+esc(x.price_date||"—")+')</span><span>Momentum 12m '+pct(x.momentum_12m)+'</span><span>Composite '+pct(x.composite_momentum)+'</span><span>SMA200 '+(x.above_sma200?"sopra":"—")+'</span><span>Rotazione 20g '+esc(rotation)+'</span></div><div class="reason">'+esc(action)+'. '+esc(x.reason)+'</div><div class="small">BIG: '+esc(x.big_state||"non disponibile")+(x.isin?' · ISIN '+esc(x.isin):'')+'</div></article>';
+  const zone=x.entry_zone_low!==null&&x.entry_zone_high!==null?n(x.entry_zone_low,2)+" – "+n(x.entry_zone_high,2):"non disponibile";
+  const position=x.indicative_position_pct===null||x.indicative_position_pct===undefined?"—":n(x.indicative_position_pct,1)+"%";
+  return '<article class="rec"><div class="rec-top"><span class="ticker">'+esc(x.ticker)+'</span>'+pill(x.label,kind)+'</div><div class="rec-name">'+esc(x.name)+'</div><div class="rec-meta"><span>'+esc(x.geography||"Area non classificata")+'</span><span>Prezzo '+esc(price)+' ('+esc(x.price_date||"—")+')</span><span>Momentum 12m '+pct(x.momentum_12m)+'</span><span>Composite '+pct(x.composite_momentum)+'</span><span>Distanza SMA200 '+n(x.sma200_gap_pct,1)+'%</span><span>Rotazione 20g '+esc(rotation)+'</span></div><div class="reason"><b>'+esc(x.entry_status||"Valutazione ingresso non disponibile")+'</b> · fascia teorica '+esc(zone)+' · invalidazione trend SMA200 '+esc(n(x.invalidation_level,2))+'<br>'+esc(action)+'. '+esc(x.reason)+'</div><div class="small">Rischio modello: 0,5% del capitale · peso massimo 10% · peso teorico '+esc(position)+' (calcolo su SMA200, non stop garantito). BIG: '+esc(x.big_state||"non disponibile")+(x.isin?' · ISIN '+esc(x.isin):'')+'</div></article>';
  }).join("");
 }
 async function loadReport(){
@@ -118,6 +120,8 @@ async function loadReport(){
    [n(a.loaded,0),"ETF caricati in ARRotation"],
    [n(r.buy_count,0)+" BUY · "+n(r.accumulate_count,0)+" ACCUMULO","Conferme operative"]
   ].map(x=>'<div class="metric"><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></div>').join("");
+  const bm=r.benchmark||{};
+  $("benchmark-panel").innerHTML='<div class="note" style="margin-top:12px"><b>Benchmark azionario globale: '+esc(bm.symbol||"—")+'</b> · Fonte: '+esc(bm.source||"—")+'<br>Rendimenti rettificati: 1 mese '+(bm.return_1m_pct===null||bm.return_1m_pct===undefined?"—":n(bm.return_1m_pct,2)+"%")+' · 3 mesi '+(bm.return_3m_pct===null||bm.return_3m_pct===undefined?"—":n(bm.return_3m_pct,2)+"%")+' · 6 mesi '+(bm.return_6m_pct===null||bm.return_6m_pct===undefined?"—":n(bm.return_6m_pct,2)+"%")+' · 20 sedute '+(bm.return_20d_pct===null||bm.return_20d_pct===undefined?"—":n(bm.return_20d_pct,2)+"%")+(bm.price!==null&&bm.price!==undefined?" · Prezzo "+n(bm.price,2)+" al "+esc(bm.price_date||"—"):"")+'</div>';
   $("recommendations").innerHTML=renderRecommendations(r);
   $("blockers").innerHTML=(r.blockers||[]).map(x=>'<div class="warning">'+esc(x)+'</div>').join("");
   $("categories").innerHTML=(m.top_categories||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.category)+'</b></td><td>'+esc(x.group)+'</td><td>'+n(x.ret20,2)+'%</td><td>'+n(x.rel20,2)+'%</td><td>'+n(x.breadth20,0)+'%</td><td>'+esc(x.status)+'</td></tr>').join("")||'<tr><td colspan="6">Dati non disponibili</td></tr>';

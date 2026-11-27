@@ -51,9 +51,17 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/bollettino.json data/bollettino_storico.json
           if git diff --cached --quiet; then echo "Nessuna variazione da salvare"; exit 0; fi
+          cp data/bollettino.json "$RUNNER_TEMP/bollettino.json"
+          cp data/bollettino_storico.json "$RUNNER_TEMP/bollettino_storico.json"
           git commit -m "Aggiorna bollettino CommandChatGPT"
           for i in 1 2 3; do
-            git pull --rebase && git push && exit 0
+            if git push; then exit 0; fi
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/bollettino.json" data/bollettino.json
+            cp "$RUNNER_TEMP/bollettino_storico.json" data/bollettino_storico.json
+            git add data/bollettino.json data/bollettino_storico.json
+            git commit -m "Aggiorna bollettino CommandChatGPT"
             sleep 5
           done
           exit 1

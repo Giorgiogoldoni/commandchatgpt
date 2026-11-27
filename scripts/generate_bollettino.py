@@ -284,6 +284,12 @@ def main():
             rec["latest_price"]=latest
             rec["latest_price_date"]=current["date"]
             rec["return_since_entry_pct"]=round((latest/base-1)*100,2)
+            old_bench_price=safe_num((edition.get("benchmark") or {}).get("price"))
+            current_bench_price=safe_num(benchmark.get("price"))
+            if old_bench_price and current_bench_price:
+                bench_return=round((current_bench_price/old_bench_price-1)*100,2)
+                rec["benchmark_return_since_entry_pct"]=bench_return
+                rec["excess_return_vs_benchmark_pct"]=round(rec["return_since_entry_pct"]-bench_return,2)
             if age is not None and age>=30 and "return_1m_pct" not in rec: rec["return_1m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=90 and "return_3m_pct" not in rec: rec["return_3m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=180 and "return_6m_pct" not in rec: rec["return_6m_pct"]=rec["return_since_entry_pct"]

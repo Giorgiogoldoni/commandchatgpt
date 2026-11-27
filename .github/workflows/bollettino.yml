@@ -51,7 +51,7 @@ jobs:
         if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         run: python scripts/generate_bollettino.py
       - name: Salva bollettino e archivio
-        if: github.event_name != 'schedule' || (steps.check.outputs.run == 'true')
+        if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -60,11 +60,20 @@ jobs:
           git commit -m "Aggiorna bollettino CommandChatGPT"
           git push
       - name: Configura GitHub Pages
+        if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         uses: actions/configure-pages@v5
       - name: Prepara sito
+        if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
+        run: |
+          mkdir -p _site/data
+          cp index.html _site/index.html
+          cp -r data/. _site/data/
+      - name: Carica sito
+        if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - name: Pubblica bollettino
+        if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         id: deployment
         uses: actions/deploy-pages@v4

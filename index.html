@@ -198,6 +198,11 @@ html,body{background:var(--bg);font-size:12px;line-height:1.45}
 .advice-text{font-size:11px;line-height:1.55;color:var(--text2)}.advice-text strong{color:var(--text)}
 .advice-foot{font-size:9px;color:var(--text3);padding-top:10px;line-height:1.5}
 @media(max-width:700px){.advice-grid{grid-template-columns:1fr}.advice-summary{font-size:11px}}
+
+/* Semaforo operativo: color is data-driven, not decorative */
+.advice-summary.green{background:#eaf7ef;border-left-color:#16834b;color:#12643b}.advice-summary.yellow{background:#fff5d8;border-left-color:#c58a00;color:#785500}.advice-summary.red{background:#fdecee;border-left-color:#c62635;color:#8e1824}
+.advice-card.green{border-left-color:#16834b;background:#f4fbf7}.advice-card.yellow{border-left-color:#c58a00;background:#fffdf6}.advice-card.red{border-left-color:#c62635;background:#fff6f6}
+.advice-card .advice-title{color:#59677b}
 </style>
 </head>
 <body>
@@ -417,15 +422,30 @@ function renderAdvice(){
   const sniperText=sniperData?sniperSignals.length+' segnali Sniper (paper only). Usarli come watchlist per ulteriori verifiche, non come ordini.':'Sniper feed non disponibile: nessun segnale da validare.';
   const managementText=alerts.length?'Alert portafoglio: '+alerts.slice(0,6).join(', ')+'. Controlla livelli e regole; non liquidare automaticamente.':openPos.length?openPos.length+' posizioni Tematici/Settoriali rilevate, nessun target/pre-alert. Verifica le condizioni di uscita.':'Nessuna posizione aperta rilevata nei feed Tematici/Settoriali.';
   const bigText=bigData?'BIG: '+bigHold.length+' TIENI/BUY/HOLD e '+bigExit.length+' ESCI/SELL nell’universo ('+bigRows.length+'). Controllare le uscite nel metodo; non vengono eseguite qui.':'Feed BIG non disponibile.';
+  // Decision status: green only with positive regime AND positive sentiment; otherwise caution/risk.
+  const riskRegimes=['EARLY BEAR','BEAR','CRISIS'];
+  const riskSentiment=sentiment.includes('RISK-OFF')||sentiment.includes('FEAR');
+  const cautionSentiment=sentiment.includes('CAUTO')||sentiment==='NEUTRO'||sentiment.includes('MIX');
+  const staleSources=(!geoData||geoEdition.data_stale||!sniperData||!bigData||!sigData);
+  let overall=riskRegimes.includes(regime)||riskSentiment?'RED':(regime==='BULL'&&sentiment.includes('RISK-ON')&&!staleSources?'GREEN':'YELLOW');
+  const statusLabel={GREEN:'🟢 FAVOREVOLE',YELLOW:'🟡 CAUTELA / CONFERME',RED:'🔴 DIFESA / RISCHIO'};
+  const statusClass={GREEN:'green',YELLOW:'yellow',RED:'red'};
+  const actionState=riskRegimes.includes(regime)||riskSentiment?'red':regime==='BULL'&&sentiment.includes('RISK-ON')?'green':'yellow';
+  const opportunityState=geoIsFresh&&geoEligible.length&&regime!=='BEAR'&&regime!=='CRISIS'?'yellow':'yellow'; // candidates always need independent confirmation
+  const riskState=riskRegimes.includes(regime)||riskSentiment?'red':(cautionSentiment||regime==='NEUTRO'||regime==='EARLY BULL'?'yellow':'green');
+  const managementState=alerts.length?'yellow':openPos.length?'yellow':'yellow'; // status means review, never imply no risk
+  const sourceState=staleSources?'yellow':'yellow'; // feed availability is not an investment signal
   const cards=[
-    {type:'action',title:'1 · AZIONE PRINCIPALE',text:'<strong>'+plan.action+'</strong><br>'+(actions[0]||'')},
-    {type:'entry',title:'2 · POSSIBILI OPPORTUNITÀ',text:geoText+'<br>'+sniperText},
-    {type:'risk',title:'3 · RISCHIO & SENTIMENT',text:riskAdvice+'<br>Regime: '+regime+'. Usa la tabella allocazione come riferimento, rispettando budget e tolleranza al rischio.'},
-    {type:'manage',title:'4 · POSIZIONI DA GESTIRE',text:managementText},
-    {type:'confirm',title:'5 · CONFERMA SISTEMI',text:bigText}
+    {type:'action',state:actionState,title:'1 · AZIONE PRINCIPALE',text:'<strong>'+plan.action+'</strong><br>'+(actions[0]||'')},
+    {type:'entry',state:opportunityState,title:'2 · POSSIBILI OPPORTUNITÀ',text:geoText+'<br>'+sniperText},
+    {type:'risk',state:riskState,title:'3 · RISCHIO & SENTIMENT',text:riskAdvice+'<br>Regime: '+regime+'. Usa la tabella allocazione come riferimento, rispettando budget e tolleranza al rischio.'},
+    {type:'manage',state:managementState,title:'4 · POSIZIONI DA GESTIRE',text:managementText},
+    {type:'confirm',state:sourceState,title:'5 · CONFERMA SISTEMI',text:bigText}
   ];
-  document.getElementById('advice-summary').textContent=plan.headline;
-  document.getElementById('advice-grid').innerHTML=cards.map(c=>'<div class="advice-card '+c.type+'"><div class="advice-title">'+c.title+'</div><div class="advice-text">'+c.text+'</div></div>').join('');
+  const summary=document.getElementById('advice-summary');
+  summary.textContent=statusLabel[overall]+' — '+plan.headline;
+  summary.className='advice-summary '+statusClass[overall];
+  document.getElementById('advice-grid').innerHTML=cards.map(c=>'<div class="advice-card '+c.type+' '+c.state+'"><div class="advice-title">'+c.title+'</div><div class="advice-text">'+c.text+'</div></div>').join('');
   document.getElementById('advice-stamp').textContent='Sintesi multi-feed · '+new Date().toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
   document.getElementById('advice-foot').textContent='Sintesi automatica da feed e regole di regime. I dati possono essere ritardati o incompleti: non esegue ordini e non sostituisce la tua valutazione.';
 }

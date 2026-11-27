@@ -90,13 +90,15 @@ def main():
     flow_quality="dato disponibile" if flow_usd is not None else "dato non disponibile"
 
     # Geografia: ranking separati; trend valido solo se prezzo > SMA200 e momentum 12m positivo.
-    rankings=geo.get("rankings",{}) or {}
+    # Per gli acquisti si usa il registro UCITS verificato, non il radar geografico esplorativo.
+    rankings=ucits.get("rankings",{}) or {}
     geo_rows=[]
     for group,arr in rankings.items():
         if not isinstance(arr,list): continue
         for x in arr:
             if not isinstance(x,dict): continue
-            eligible=x.get("eligible_trend") is True and x.get("absolute_momentum_positive") is True and x.get("above_sma200") is True
+            eligible=(x.get("status")=="CALCOLATO" and x.get("eligible_trend") is True
+                      and x.get("absolute_momentum_positive") is True and x.get("above_sma200") is True)
             if eligible:
                 geo_rows.append({**x,"_group":group})
     geo_rows.sort(key=lambda x:safe_num(x.get("composite_momentum")) if safe_num(x.get("composite_momentum")) is not None else -1e9,reverse=True)
@@ -108,9 +110,10 @@ def main():
         for t in (c.get("tickers",[]) or []): ticker_category[str(t).upper()]=c
     recommendations=[]
     for g in geo_rows:
-        ticker=str(g.get("ticker") or g.get("symbol") or "").upper()
+        symbol=str(g.get("symbol") or g.get("ticker") or "").upper()
+        ticker=symbol
         if not ticker: continue
-        b=big_rows.get(ticker)
+        b=big_rows.get(symbol)
         if b and (b.get("lv") is True or b.get("inv") is True): continue
         cat=ticker_category.get(ticker)
         big_state=state_text(b) if b else "NON DISPONIBILE"
@@ -123,7 +126,7 @@ def main():
         else: label="WATCHLIST"
         # Evita di trasformare segnali isolati in raccomandazioni: le tre condizioni sono esplicite.
         recommendations.append({
-            "ticker":ticker,"name":g.get("name") or g.get("fund") or g.get("geography") or ticker,
+            "ticker":ticker,"instrument_ticker":g.get("ticker"),"name":g.get("name") or g.get("fund") or g.get("geography") or ticker,
             "geography":g.get("geography") or g.get("country") or g.get("module") or g.get("_group"),
             "isin":g.get("isin"),"price":g.get("price"),"price_date":g.get("price_date") or g.get("latest_price_date"),
             "composite_momentum":g.get("composite_momentum"),"momentum_12m":g.get("momentum_12m"),
@@ -167,7 +170,7 @@ def main():
       "edition":"11:00" if local.hour==11 else ("23:00" if local.hour==23 else "STRAORDINARIA"),
       "market":{"regime":regime,"note":regime_note,"benchmark_return_20":median20,"category_count":len(cats),"positive_relative_categories":len(positive_cats),"top_categories":top_categories},
       "flows":{"as_of":flow_asof,"flow_usd":flow_usd,"flow_pct_assets":flow_total.get("flowPctOfStartNetAssets"),"inflows_usd":flow_total.get("inflowsUsd"),"outflows_usd":flow_total.get("outflowsUsd"),"funds_in":flow_total.get("fundsIn"),"funds_out":flow_total.get("fundsOut"),"quality":flow_quality},
-      "geography":{"generated_at":geo.get("generated_at"),"latest_price_date":geo.get("latest_price_date"),"trend_candidates":len(geo_rows),"top":recs},
+      "geography":{"generated_at":ucits.get("generated_at"),"latest_price_date":ucits.get("latest_price_date"),"trend_candidates":len(geo_rows),"top":recs},
       "rotation":{"generated":rot.get("generated"),"latest_bar":rot.get("latest_bar"),"universe":rot.get("universe"),"eligible":rot.get("eligible"),"loaded":rot.get("tickers_loaded"),"candidate_count":(sel.get("riepilogo") or {}).get("candidati"),"exit_count":(sel.get("riepilogo") or {}).get("uscite"),"open_signals":(sel.get("riepilogo") or {}).get("segnalazioni_aperte"),"candidates":ar_candidates,"top_categories":top_categories},
       "big":{"generated":big.get("gen"),"rows":len(big.get("righe",[]) or []),"systems":len(big.get("sistemi",[]) or []),"buy_count":buy_count,"accumulate_count":accum_count},
       "sniper":{"generated":sniper.get("generated_utc"),"paper_only":bool(sniper.get("paper_only",True)),"signal_count":sniper.get("signal_count",len(sniper.get("signals",[]) or [])),"age_days":sniper_age,"rrg_generated":rrg.get("generated_utc"),"rrg_instruments":rrg.get("instruments"),"rrg_fetch_ok":(rrg.get("fetch_status") or {}).get("ok"),"rrg_fetch_total":(rrg.get("fetch_status") or {}).get("total")},

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-11-27T18:52:14.961355+00:00",
-  "generated_local": "2026-11-27T19:52:14.961355+01:00",
+  "generated_utc": "2026-11-27T18:55:23.733017+00:00",
+  "generated_local": "2026-11-27T19:55:23.733017+01:00",
   "edition": "STRAORDINARIA",
   "market": {
     "regime": "PRUDENZA SELETTIVA",
@@ -144,6 +144,8 @@
   },
   "geography": {
     "generated_at": "2026-11-27T16:08:19.616448+00:00",
+    "age_days": 0.11603130380787038,
+    "stale": false,
     "latest_price_date": "2026-11-27",
     "trend_candidates": 7,
     "top": [
@@ -291,6 +293,8 @@
   },
   "rotation": {
     "generated": "2026-11-27 18:23 UTC",
+    "age_days": 0.022508346006944447,
+    "stale": false,
     "latest_bar": "2026-11-27",
     "universe": 2342,
     "eligible": 2132,
@@ -435,6 +439,8 @@
   },
   "big": {
     "generated": "2026-11-27 16:25 UTC",
+    "age_days": 0.10445279039351851,
+    "stale": false,
     "rows": 2342,
     "systems": 12,
     "buy_count": 0,
@@ -444,7 +450,7 @@
     "generated": "2026-11-26T10:32:09.371381+00:00",
     "paper_only": true,
     "signal_count": 126,
-    "age_days": 1.347292608101852,
+    "age_days": 1.3494832140277777,
     "rrg_generated": "2026-11-27T16:09:22.388506+00:00",
     "rrg_instruments": 284,
     "rrg_fetch_ok": 284,
@@ -454,7 +460,7 @@
     "as_of": "2026-11-13",
     "status": "partial",
     "stale": true,
-    "age_days": 14.78628996236111,
+    "age_days": 14.788480568449074,
     "instrument_count": 29,
     "watchlist_count": 5,
     "portfolio_positions": 18,

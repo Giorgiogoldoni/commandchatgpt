@@ -50,7 +50,7 @@ const urls={
  sniper:BASE.sniper+'current_signals.json',sniperRrg:BASE.sniper+'sniper_rrg_summary.json',
  taxSnapshot:BASE.tax+'market_snapshot.json',taxStrategy:BASE.tax+'strategy.json',taxInstruments:BASE.tax+'instruments.json',taxWatch:BASE.tax+'watchlist.json',taxPortfolio:BASE.tax+'portfolio.json'
 };
-const $=id=>document.getElementById(id), num=(x,d=1)=>Number.isFinite(Number(x))?Number(x).toFixed(d):'—';
+const $=id=>document.getElementById(id), num=(x,d=1)=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x))?Number(x).toFixed(d):'—';
 const dateText=x=>x?String(x).replace('T',' ').replace('Z',' UTC'):'data non datata';
 async function get(url){const r=await fetch(url+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
 function age(date){if(!date)return null;const t=Date.parse(date);return Number.isFinite(t)?(Date.now()-t)/86400000:null}
@@ -71,11 +71,11 @@ async function loadAr(){
  '<div class="links">'+link('https://giorgiogoldoni.github.io/arrotation/','Apri ARRotation')+'</div>');
 }
 async function loadBig(){
- const d=await get(urls.big),rows=d.righe||[],states={};rows.forEach(x=>{const k=String(x.sta||'N/D').toUpperCase();states[k]=(states[k]||0)+1});
+ const d=await get(urls.big),rows=d.righe||[],states={},stateOf=x=>String(Array.isArray(x.sta)?(x.sta[0]||'N/D'):(x.sta||'N/D')).toUpperCase();rows.forEach(x=>{const k=stateOf(x);states[k]=(states[k]||0)+1});
  const fresh=age(d.gen)<2,sorted=rows.slice().sort((a,b)=>(Number(b.v)||0)-(Number(a.v)||0)).slice(0,8);
  setCard('big',fresh?'ok':'warn',fresh?'AGGIORNATO':'DATA DA VERIFICARE',
  '<div class="metrics">'+metric(rows.length,'ETF con dati')+metric(states.BUY||0,'BUY')+metric(states.ESCI||0,'ESCI')+'</div>'+
- '<div class="sub">Generato '+dateText(d.gen)+' · '+(d.sistemi||[]).length+' sistemi tecnici</div><ul class="rows">'+sorted.map(x=>'<li><span><b>'+x.t+'</b><br><span class="muted">'+(x.n||'')+'</span></span><span class="val">'+(x.sta||'N/D')+'<br><span class="muted">'+num(x.v,2)+'%</span></span></li>').join('')+'</ul>'+
+ '<div class="sub">Generato '+dateText(d.gen)+' · '+(d.sistemi||[]).length+' sistemi tecnici</div><ul class="rows">'+sorted.map(x=>'<li><span><b>'+x.t+'</b><br><span class="muted">'+(x.n||'')+'</span></span><span class="val">'+stateOf(x)+'<br><span class="muted">'+num(x.v,2)+'%</span></span></li>').join('')+'</ul>'+
  '<div class="links">'+link('https://giorgiogoldoni.github.io/BIGCHATGPT/','Apri BIGChatGPT')+'</div>');
 }
 async function loadGeo(){

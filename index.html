@@ -187,6 +187,17 @@ html,body{background:var(--bg);font-size:12px;line-height:1.45}
 @media(max-width:700px){#topbar{padding:9px 11px;gap:8px}.logo{font-size:19px}.logo span{letter-spacing:1px}.ts-group{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.ts-item{flex-shrink:0}.topbar-right{width:100%;margin-left:0}.tb-btn{flex:1;justify-content:center}#alert-banner{margin:0 10px}.page{padding:10px 10px 30px;gap:10px}#regime-banner{padding:15px;grid-template-columns:1fr;gap:12px}.regime-name{font-size:36px}.regime-signals{grid-column:auto;order:0}.regime-right{min-width:0}.section-head{padding:9px 11px;align-items:flex-start;gap:7px;flex-direction:column}.section-body{padding:10px}.perf-row{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-pill{padding:10px}.perf-pill-val{font-size:20px}.cards-row{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-card{padding:9px}.kpi-price{font-size:19px}.auto-grid{grid-template-columns:1fr}.auto-pos-row{grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.auto-pos-row .auto-pos-date{display:none}.signal-row{grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.alloc-table{font-size:9px}.alloc-bar-wrap{width:45px}}
 @media(max-width:390px){.cards-row{grid-template-columns:1fr}.perf-row{grid-template-columns:1fr 1fr}.logo span{display:none}}
 
+
+/* OPERATIVE ADVICE PANEL */
+.advice-section{border:2px solid #d5b66b;box-shadow:0 4px 16px rgba(125,93,15,.07)}
+.advice-summary{padding:13px 15px;border-radius:8px;background:#fff9e9;border-left:4px solid var(--accent);font-size:12px;font-weight:700;line-height:1.55;margin-bottom:12px}
+.advice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.advice-card{border:1px solid var(--border);border-radius:8px;padding:12px;background:#fff}
+.advice-card.action{border-left:4px solid var(--blue)}.advice-card.entry{border-left:4px solid var(--bull)}.advice-card.risk{border-left:4px solid var(--orange)}.advice-card.manage{border-left:4px solid var(--purple)}.advice-card.confirm{border-left:4px solid var(--neutral)}
+.advice-title{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:5px}
+.advice-text{font-size:11px;line-height:1.55;color:var(--text2)}.advice-text strong{color:var(--text)}
+.advice-foot{font-size:9px;color:var(--text3);padding-top:10px;line-height:1.5}
+@media(max-width:700px){.advice-grid{grid-template-columns:1fr}.advice-summary{font-size:11px}}
 </style>
 </head>
 <body>
@@ -223,6 +234,11 @@ html,body{background:var(--bg);font-size:12px;line-height:1.45}
     <div class="regime-signals" id="regime-signals"><div style="color:var(--text3);font-size:10px;">Caricamento...</div></div>
     <div class="regime-right" id="regime-actions"></div>
   </div>
+
+  <section class="section advice-section" id="advice-panel">
+    <div class="section-head"><span class="section-title">🧭 CONSIGLI OPERATIVI DELLA GIORNATA</span><span class="section-sub" id="advice-stamp">Sintesi multi-feed · non ordini automatici</span></div>
+    <div class="section-body"><div class="advice-summary" id="advice-summary">Caricamento delle fonti…</div><div class="advice-grid" id="advice-grid"></div><div class="advice-foot" id="advice-foot"></div></div>
+  </section>
 
   <div class="section">
     <div class="section-head">
@@ -369,6 +385,49 @@ function compositeClass(c){
   if(u==='RISK-OFF')return'risk-off';
   if(u==='CAUTO')return'cauto';
   return'neutro';
+}
+
+
+function renderAdvice(){
+  const regime=rseData?.meta?.regime||'NEUTRO';
+  const sentiment=String(sigData?.composite||'NEUTRO').toUpperCase();
+  const cfg=REGIME_CONFIG[regime]||REGIME_CONFIG.NEUTRO;
+  const actions=(cfg.actions||[]).map(a=>a.text);
+  const plans={
+    'BULL':{headline:'Risk-on: favorire le posizioni forti, ma entrare solo su segnali confermati.',action:'Mantieni esposizione azionaria; nuovi ingressi solo su BUY confermati e con tranche.'},
+    'EARLY BULL':{headline:'Ripresa: costruire gradualmente, evitando di inseguire i rialzi.',action:'Preferisci ingressi progressivi e strumenti di qualità; mantieni una riserva significativa.'},
+    'NEUTRO':{headline:'Mercato senza direzione chiara: oggi la priorità è selezione e pazienza.',action:'Non aumentare il rischio in modo generalizzato. Attendere conferme sui singoli ETF/titoli.'},
+    'EARLY BEAR':{headline:'Rischio in aumento: difendere il capitale e ridurre le posizioni fragili.',action:'Alleggerire posizioni deboli o in perdita senza conferme; aumentare liquidità secondo piano.'},
+    'BEAR':{headline:'Risk-off: priorità alla protezione del capitale.',action:'Ridurre esposizione rischiosa e sospendere nuovi ingressi non difensivi; evitare decisioni impulsive.'},
+    'CRISIS':{headline:'Stress elevato: conservare liquidità e applicare regole di rischio.',action:'Niente nuovi acquisti discrezionali; controllare stop e dimensionamento, operare solo secondo piano.'}
+  };
+  const plan=plans[regime]||plans.NEUTRO;
+  const geoEdition=geoData?.editions?.[0]||{};
+  const geoEligible=(geoEdition.areas||[]).filter(x=>x.eligible_trend===true).sort((a,b)=>(b.composite_momentum||0)-(a.composite_momentum||0));
+  const geoIsFresh=geoData&&!geoEdition.data_stale;
+  const sniperSignals=sniperData?.signals||[];
+  const bigRows=bigData?.righe||[];
+  const bigExit=bigRows.filter(x=>['ESCI','SELL'].includes(String(x.sta||'').toUpperCase()));
+  const bigHold=bigRows.filter(x=>['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase()));
+  let alerts=[],openPos=[];
+  Object.values(temData?.groups||{}).forEach(g=>(g.positions||[]).forEach(p=>{openPos.push(p);if(p.target_hit||p.pre_alert)alerts.push((p.target_hit?'TARGET ':'PRE-ALERT ')+(p.ticker||p.label||'?'));}));
+  Object.values(setData?.portfolios||{}).forEach(g=>(g.positions||[]).forEach(p=>{openPos.push(p);if(p.target_hit||p.pre_alert)alerts.push((p.target_hit?'TARGET ':'PRE-ALERT ')+(p.ticker||p.label||'?'));}));
+  const riskAdvice=(sentiment.includes('RISK-OFF')||sentiment.includes('FEAR')||sentiment.includes('CAUTO'))?'Sentiment '+sentiment+': prudenza aggiuntiva, riduci gli ingressi e verifica volatilità.':sentiment.includes('RISK-ON')?'Sentiment '+sentiment+': favorevole, ma non sostituisce il filtro del regime e i segnali individuali.':'Sentiment '+sentiment+': neutro/misto, non usarlo da solo per decidere nuovi acquisti.';
+  const geoText=geoIsFresh&&geoEligible.length?'Shortlist geografica: '+geoEligible.slice(0,3).map(x=>x.ticker+' ('+Number(x.composite_momentum||0).toFixed(1)+'%)').join(', ')+'. Verificare conferma e rischio prima dell’ingresso.':geoData?'Feed geografico stale o senza candidati: non usarlo come trigger.':'Feed geografico non disponibile: nessuna shortlist.';
+  const sniperText=sniperData?sniperSignals.length+' segnali Sniper (paper only). Usarli come watchlist per ulteriori verifiche, non come ordini.':'Sniper feed non disponibile: nessun segnale da validare.';
+  const managementText=alerts.length?'Alert portafoglio: '+alerts.slice(0,6).join(', ')+'. Controlla livelli e regole; non liquidare automaticamente.':openPos.length?openPos.length+' posizioni Tematici/Settoriali rilevate, nessun target/pre-alert. Verifica le condizioni di uscita.':'Nessuna posizione aperta rilevata nei feed Tematici/Settoriali.';
+  const bigText=bigData?'BIG: '+bigHold.length+' TIENI/BUY/HOLD e '+bigExit.length+' ESCI/SELL nell’universo ('+bigRows.length+'). Controllare le uscite nel metodo; non vengono eseguite qui.':'Feed BIG non disponibile.';
+  const cards=[
+    {type:'action',title:'1 · AZIONE PRINCIPALE',text:'<strong>'+plan.action+'</strong><br>'+(actions[0]||'')},
+    {type:'entry',title:'2 · POSSIBILI OPPORTUNITÀ',text:geoText+'<br>'+sniperText},
+    {type:'risk',title:'3 · RISCHIO & SENTIMENT',text:riskAdvice+'<br>Regime: '+regime+'. Usa la tabella allocazione come riferimento, rispettando budget e tolleranza al rischio.'},
+    {type:'manage',title:'4 · POSIZIONI DA GESTIRE',text:managementText},
+    {type:'confirm',title:'5 · CONFERMA SISTEMI',text:bigText}
+  ];
+  document.getElementById('advice-summary').textContent=plan.headline;
+  document.getElementById('advice-grid').innerHTML=cards.map(c=>'<div class="advice-card '+c.type+'"><div class="advice-title">'+c.title+'</div><div class="advice-text">'+c.text+'</div></div>').join('');
+  document.getElementById('advice-stamp').textContent='Sintesi multi-feed · '+new Date().toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
+  document.getElementById('advice-foot').textContent='Sintesi automatica da feed e regole di regime. I dati possono essere ritardati o incompleti: non esegue ordini e non sostituisce la tua valutazione.';
 }
 
 function renderSentiment(){
@@ -754,6 +813,7 @@ async function loadAll(){
   }
   renderSentiment();
   renderAutonomous();
+  renderAdvice();
   loadLocalSignals();
 }
 loadAll();

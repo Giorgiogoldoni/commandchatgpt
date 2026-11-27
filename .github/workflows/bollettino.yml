@@ -50,6 +50,8 @@ jobs:
           fi
       - name: Genera bollettino e storico
         if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
+        env:
+          ARCHIVE_EDITION: ${{ github.event_name == 'push' && '0' || '1' }}
         run: python scripts/generate_bollettino.py
       - name: Salva bollettino e archivio
         if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')

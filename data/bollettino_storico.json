@@ -189,6 +189,65 @@
       ],
       "buy_count": 0,
       "accumulate_count": 1
+    },
+    {
+      "generated_utc": "2026-11-27T18:52:14.961355+00:00",
+      "generated_local": "2026-11-27T19:52:14.961355+01:00",
+      "edition": "STRAORDINARIA",
+      "regime": "PRUDENZA SELETTIVA",
+      "recommendations": [
+        {
+          "ticker": "FLXI.MI",
+          "label": "ACCUMULO",
+          "price": 39.974998474121094,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); rotazione positiva e ampiezza >=60%; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "IBCJ.DE",
+          "label": "WATCHLIST",
+          "price": 35.28499984741211,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "GRC.MI",
+          "label": "WATCHLIST",
+          "price": 2.86299991607666,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "D5BI.DE",
+          "label": "WATCHLIST",
+          "price": 8.065999984741211,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "IAEX.AS",
+          "label": "WATCHLIST",
+          "price": 109.80000305175781,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "CSCA.MI",
+          "label": "WATCHLIST",
+          "price": 273.4100036621094,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "SJPA.MI",
+          "label": "WATCHLIST",
+          "price": 70.38999938964844,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        }
+      ],
+      "buy_count": 0,
+      "accumulate_count": 1
     }
   ]
 }

@@ -394,62 +394,74 @@ function compositeClass(c){
 
 
 function renderAdvice(){
-  const regime=rseData?.meta?.regime||'NEUTRO';
-  const sentiment=String(sigData?.composite||'NEUTRO').toUpperCase();
-  const cfg=REGIME_CONFIG[regime]||REGIME_CONFIG.NEUTRO;
-  const actions=(cfg.actions||[]).map(a=>a.text);
-  const plans={
-    'BULL':{headline:'Risk-on: favorire le posizioni forti, ma entrare solo su segnali confermati.',action:'Mantieni esposizione azionaria; nuovi ingressi solo su BUY confermati e con tranche.'},
-    'EARLY BULL':{headline:'Ripresa: costruire gradualmente, evitando di inseguire i rialzi.',action:'Preferisci ingressi progressivi e strumenti di qualità; mantieni una riserva significativa.'},
-    'NEUTRO':{headline:'Mercato senza direzione chiara: oggi la priorità è selezione e pazienza.',action:'Non aumentare il rischio in modo generalizzato. Attendere conferme sui singoli ETF/titoli.'},
-    'EARLY BEAR':{headline:'Rischio in aumento: difendere il capitale e ridurre le posizioni fragili.',action:'Alleggerire posizioni deboli o in perdita senza conferme; aumentare liquidità secondo piano.'},
-    'BEAR':{headline:'Risk-off: priorità alla protezione del capitale.',action:'Ridurre esposizione rischiosa e sospendere nuovi ingressi non difensivi; evitare decisioni impulsive.'},
-    'CRISIS':{headline:'Stress elevato: conservare liquidità e applicare regole di rischio.',action:'Niente nuovi acquisti discrezionali; controllare stop e dimensionamento, operare solo secondo piano.'}
-  };
-  const plan=plans[regime]||plans.NEUTRO;
+  const rawRegime=String(rseData?.meta?.regime||'N/D').toUpperCase();
+  const regimeAliases={'RALLENTAMENTO':'RALLENTAMENTO','ESPANSIONE':'ESPANSIONE'};
+  const sentiment=String(sigData?.composite||'N/D').toUpperCase();
   const geoEdition=geoData?.editions?.[0]||{};
-  const geoEligible=(geoEdition.areas||[]).filter(x=>x.eligible_trend===true).sort((a,b)=>(b.composite_momentum||0)-(a.composite_momentum||0));
-  const geoIsFresh=geoData&&!geoEdition.data_stale;
+  const geoDate=geoEdition.date||'';
+  const geoAge=geoDate?Math.floor((Date.now()-new Date(geoDate+'T23:59:59').getTime())/86400000):999;
+  const geoFresh=!!geoData&&!geoEdition.data_stale&&geoAge<=3;
+  const sniperDate=sniperData?.generated_utc||'';
+  const sniperAge=sniperDate?Math.floor((Date.now()-new Date(sniperDate).getTime())/86400000):999;
+  const sniperFresh=!!sniperData&&sniperAge<=2;
+  const rseDate=rseData?.meta?.updated||'';
+  const rseAge=rseDate?Math.floor((Date.now()-new Date(rseDate).getTime())/86400000):999;
+  const rseFresh=!!rseData&&rseAge<=2;
+  const plans={
+    'BULL':{tone:'green',headline:'Mercato favorevole: mantenere esposizione, ma comprare solo su conferme.',action:'Mantenere i trend forti. Nuovi ingressi graduali e solo su segnali tecnici completi.'},
+    'EARLY BULL':{tone:'yellow',headline:'Ripresa in costruzione: aumentare il rischio con gradualità.',action:'Entrare a tranche, privilegiare strumenti liquidi e sopra la media di lungo periodo.'},
+    'ESPANSIONE':{tone:'yellow',headline:'Fase di espansione secondo RSE: partecipare senza inseguire i prezzi.',action:'Mantenere le posizioni robuste; nuovi acquisti solo dopo conferma di trend, momentum e rischio.'},
+    'NEUTRO':{tone:'yellow',headline:'Mercato senza direzione dominante: prevale la selezione.',action:'Non aumentare il rischio in modo generalizzato. Attendere conferme sui singoli strumenti.'},
+    'RALLENTAMENTO':{tone:'red',headline:'Rallentamento macro: priorità alla difesa e alla qualità dei segnali.',action:'Sospendere nuovi acquisti discrezionali ad alto beta; rivedere le posizioni deboli e mantenere liquidità secondo il proprio piano.'},
+    'EARLY BEAR':{tone:'red',headline:'Deterioramento: ridurre le posizioni fragili e alzare la prudenza.',action:'Alleggerire i titoli sotto trend e non mediare al ribasso. Verificare stop e dimensionamento.'},
+    'BEAR':{tone:'red',headline:'Mercato ribassista: protezione del capitale.',action:'Ridurre l’esposizione rischiosa secondo le regole del portafoglio; evitare nuovi ingressi long non confermati.'},
+    'CRISIS':{tone:'red',headline:'Stress di mercato: preservare capitale e liquidità.',action:'Niente nuovi acquisti discrezionali; controllare esposizioni, concentrazione e rischio.'}
+  };
+  const plan=plans[rawRegime]||{tone:'yellow',headline:'Regime non riconosciuto: nessun consiglio direzionale affidabile.',action:'Non modificare l’esposizione sulla base di questa dashboard finché il regime non è validato.'};
+  const geoRows=(geoEdition.areas||[]).filter(x=>x.eligible_trend===true&&x.above_sma200===true&&x.absolute_momentum_positive===true).sort((a,b)=>(Number(b.composite_momentum)||0)-(Number(a.composite_momentum)||0));
+  const geoCandidates=geoFresh?geoRows.slice(0,5):[];
   const sniperSignals=sniperData?.signals||[];
-  const bigRows=bigData?.righe||[];
-  const bigExit=bigRows.filter(x=>['ESCI','SELL'].includes(String(x.sta||'').toUpperCase()));
-  const bigHold=bigRows.filter(x=>['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase()));
+  const sniperNonLeveraged=sniperSignals.filter(x=>!String(x.category||'').includes('LEVA')&&!/\\b[3-5]x\\b|leverag|inverse|short/i.test(String(x.name||'')));
+  const bigBoll=bigData?.bollettino||bigData?.big||null;
+  const bigBuy=(bigBoll?.areas||[]).flatMap(a=>a.buy_candidates||[]);
+  const bigWatch=(bigBoll?.areas||[]).flatMap(a=>a.leaders||[]).filter(x=>x.buy_level==='WATCH');
   let alerts=[],openPos=[];
   Object.values(temData?.groups||{}).forEach(g=>(g.positions||[]).forEach(p=>{openPos.push(p);if(p.target_hit||p.pre_alert)alerts.push((p.target_hit?'TARGET ':'PRE-ALERT ')+(p.ticker||p.label||'?'));}));
   Object.values(setData?.portfolios||{}).forEach(g=>(g.positions||[]).forEach(p=>{openPos.push(p);if(p.target_hit||p.pre_alert)alerts.push((p.target_hit?'TARGET ':'PRE-ALERT ')+(p.ticker||p.label||'?'));}));
-  const riskAdvice=(sentiment.includes('RISK-OFF')||sentiment.includes('FEAR')||sentiment.includes('CAUTO'))?'Sentiment '+sentiment+': prudenza aggiuntiva, riduci gli ingressi e verifica volatilità.':sentiment.includes('RISK-ON')?'Sentiment '+sentiment+': favorevole, ma non sostituisce il filtro del regime e i segnali individuali.':'Sentiment '+sentiment+': neutro/misto, non usarlo da solo per decidere nuovi acquisti.';
-  const geoText=geoIsFresh&&geoEligible.length?'Shortlist geografica: '+geoEligible.slice(0,3).map(x=>x.ticker+' ('+Number(x.composite_momentum||0).toFixed(1)+'%)').join(', ')+'. Verificare conferma e rischio prima dell’ingresso.':geoData?'Feed geografico stale o senza candidati: non usarlo come trigger.':'Feed geografico non disponibile: nessuna shortlist.';
-  const sniperText=sniperData?sniperSignals.length+' segnali Sniper (paper only). Usarli come watchlist per ulteriori verifiche, non come ordini.':'Sniper feed non disponibile: nessun segnale da validare.';
-  const managementText=alerts.length?'Alert portafoglio: '+alerts.slice(0,6).join(', ')+'. Controlla livelli e regole; non liquidare automaticamente.':openPos.length?openPos.length+' posizioni Tematici/Settoriali rilevate, nessun target/pre-alert. Verifica le condizioni di uscita.':'Nessuna posizione aperta rilevata nei feed Tematici/Settoriali.';
-  const bigText=bigData?'BIG: '+bigHold.length+' TIENI/BUY/HOLD e '+bigExit.length+' ESCI/SELL nell’universo ('+bigRows.length+'). Controllare le uscite nel metodo; non vengono eseguite qui.':'Feed BIG non disponibile.';
-  // Decision status: green only with positive regime AND positive sentiment; otherwise caution/risk.
-  const riskRegimes=['EARLY BEAR','BEAR','CRISIS'];
-  const riskSentiment=sentiment.includes('RISK-OFF')||sentiment.includes('FEAR');
-  const cautionSentiment=sentiment.includes('CAUTO')||sentiment==='NEUTRO'||sentiment.includes('MIX');
-  const staleSources=(!geoData||geoEdition.data_stale||!sniperData||!bigData||!sigData);
-  let overall=riskRegimes.includes(regime)||riskSentiment?'RED':(regime==='BULL'&&sentiment.includes('RISK-ON')&&!staleSources?'GREEN':'YELLOW');
-  const statusLabel={GREEN:'🟢 FAVOREVOLE',YELLOW:'🟡 CAUTELA / CONFERME',RED:'🔴 DIFESA / RISCHIO'};
-  const statusClass={GREEN:'green',YELLOW:'yellow',RED:'red'};
-  const actionState=riskRegimes.includes(regime)||riskSentiment?'red':regime==='BULL'&&sentiment.includes('RISK-ON')?'green':'yellow';
-  const opportunityState=geoIsFresh&&geoEligible.length&&regime!=='BEAR'&&regime!=='CRISIS'?'yellow':'yellow'; // candidates always need independent confirmation
-  const riskState=riskRegimes.includes(regime)||riskSentiment?'red':(cautionSentiment||regime==='NEUTRO'||regime==='EARLY BULL'?'yellow':'green');
-  const managementState=alerts.length?'yellow':openPos.length?'yellow':'yellow'; // status means review, never imply no risk
-  const sourceState=staleSources?'yellow':'yellow'; // feed availability is not an investment signal
-  const cards=[
-    {type:'action',state:actionState,title:'1 · AZIONE PRINCIPALE',text:'<strong>'+plan.action+'</strong><br>'+(actions[0]||'')},
-    {type:'entry',state:opportunityState,title:'2 · POSSIBILI OPPORTUNITÀ',text:geoText+'<br>'+sniperText},
-    {type:'risk',state:riskState,title:'3 · RISCHIO & SENTIMENT',text:riskAdvice+'<br>Regime: '+regime+'. Usa la tabella allocazione come riferimento, rispettando budget e tolleranza al rischio.'},
-    {type:'manage',state:managementState,title:'4 · POSIZIONI DA GESTIRE',text:managementText},
-    {type:'confirm',state:sourceState,title:'5 · CONFERMA SISTEMI',text:bigText}
-  ];
+  const riskSignals=(rseData?.meta?.regime_signals||[]).slice(0,5);
+  const stale=[];
+  if(!rseFresh)stale.push('RSE');
+  if(!geoFresh)stale.push('Geografia');
+  if(!sniperFresh)stale.push('Sniper');
+  if(!sigData)stale.push('Sentiment');
+  const geoText=geoFresh&&geoCandidates.length
+    ?'Geografia aggiornata al '+geoDate+': '+geoCandidates.map(x=>x.ticker+' ('+Number(x.composite_momentum||0).toFixed(1)+'%)').join(', ')+'. Sono candidati di trend, NON ordini di acquisto.'
+    :'Nessuna shortlist geografica utilizzabile: feed '+(geoDate?'del '+geoDate+' e non aggiornato':'non disponibile')+'.';
+  const sniperText=sniperFresh
+    ?'Sniper: '+sniperSignals.length+' segnali simulati (paper-only), '+sniperNonLeveraged.length+' non classificati come leva. Non sono ordini né conferme autonome di acquisto.'
+    :'Sniper non aggiornato o non disponibile: segnali esclusi dai consigli.';
+  const bigText=bigBoll
+    ?'BIG bollettino: '+bigBuy.length+' BUY pienamente confermati e '+bigWatch.length+' WATCH da monitorare. I BUY richiedono conferme multiple; verificare data e strumenti prima di operare.'
+    :'BIG: non è disponibile un bollettino leggibile nel formato atteso; nessun conteggio BUY viene inventato.';
+  const sentimentText=sentiment==='N/D'?'Sentiment non disponibile: non aggiunge conferma.':
+    (sentiment.includes('RISK-OFF')||sentiment.includes('FEAR')||sentiment.includes('CAUTO'))?'Sentiment '+sentiment+': ulteriore conferma di prudenza.':
+    sentiment.includes('RISK-ON')?'Sentiment '+sentiment+': elemento favorevole, ma non annulla il regime macro.':'Sentiment '+sentiment+': segnale misto, non sufficiente per autorizzare ingressi.';
   const summary=document.getElementById('advice-summary');
-  summary.textContent=statusLabel[overall]+' — '+plan.headline;
-  summary.className='advice-summary '+statusClass[overall];
-  document.getElementById('advice-grid').innerHTML=cards.map(c=>'<div class="advice-card '+c.type+' '+c.state+'"><div class="advice-title">'+c.title+'</div><div class="advice-text">'+c.text+'</div></div>').join('');
-  document.getElementById('advice-stamp').textContent='Sintesi multi-feed · '+new Date().toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
-  document.getElementById('advice-foot').textContent='Sintesi automatica da feed e regole di regime. I dati possono essere ritardati o incompleti: non esegue ordini e non sostituisce la tua valutazione.';
+  const tone=stale.length?'yellow':plan.tone;
+  const label={green:'FAVOREVOLE',yellow:'CAUTELA',red:'DIFESA'};
+  summary.textContent=label[tone]+' · REGIME '+rawRegime+' — '+plan.headline+(stale.length?' Fonti da aggiornare: '+stale.join(', ')+'.':'');
+  summary.className='advice-summary '+tone;
+  const cards=[
+    {type:'action',title:'1 · DECISIONE DI OGGI',text:'<strong>'+plan.action+'</strong><br>RSE: '+(rseDate||'data non disponibile')+' · '+(rseFresh?'dato recente':'dato da verificare')+'.'},
+    {type:'entry',title:'2 · CANDIDATI, NON ORDINI',text:geoText+'<br>'+sniperText},
+    {type:'risk',title:'3 · RISCHIO E CONTESTO',text:sentimentText+'<br>'+(riskSignals.length?riskSignals.join(' · '):'Dettaglio segnali RSE non disponibile.')},
+    {type:'manage',title:'4 · CONTROLLO PORTAFOGLI',text:alerts.length?'Alert da verificare: '+alerts.slice(0,8).join(', ')+'.':openPos.length?openPos.length+' posizioni rilevate nei feed Tematici/Settoriali; nessun target/pre-alert segnalato. Verificare i singoli criteri di uscita.':'Feed posizioni Tematici/Settoriali vuoti o non disponibili: impossibile concludere che non ci siano posizioni.'},
+    {type:'confirm',title:'5 · CONFERMA BIG',text:bigText}
+  ];
+  document.getElementById('advice-grid').innerHTML=cards.map(c=>'<div class="advice-card '+c.type+'"><div class="advice-title">'+c.title+'</div><div class="advice-text">'+c.text+'</div></div>').join('');
+  document.getElementById('advice-stamp').textContent='Analisi multi-feed · '+new Date().toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
+  document.getElementById('advice-foot').textContent='Regole trasparenti: RALLENTAMENTO non viene ricondotto a NEUTRO; feed vecchi esclusi dalla shortlist; segnali Sniper paper-only e BIG WATCH non equivalgono a BUY. Nessun ordine viene eseguito. Verificare prezzi, liquidità, costi e rischio prima di qualsiasi operazione.';
 }
-
 function renderSentiment(){
   const el=document.getElementById('sentiment-body');
   if(!sigData){el.innerHTML='<div class="empty">Dati non disponibili</div>';return;}

@@ -65,7 +65,7 @@ def fetch_yahoo_benchmark(symbol="ACWI.MI"):
         def ret(n): return round((latest/values[-(n+1)][1]-1)*100,2) if len(values)>n else None
         return {"symbol":symbol,"name":"Amundi MSCI All Country World UCITS ETF EUR Acc","isin":"LU1829220216",
                 "price":round(latest,5),"price_date":dt.datetime.fromtimestamp(values[-1][0],dt.timezone.utc).date().isoformat(),
-                "return_1m_pct":ret(21),"return_3m_pct":ret(63),"return_6m_pct":ret(126),
+                "trailing_1m_pct":ret(21),"trailing_3m_pct":ret(63),"trailing_6m_pct":ret(126),
                 "source":"Yahoo Finance adjusted close","currency":(result.get("meta") or {}).get("currency")}
     except Exception as e:
         print("BENCHMARK ERROR",repr(e)); return None
@@ -115,7 +115,7 @@ def main():
     benchmark=fetch_yahoo_benchmark("ACWI.MI")
     if benchmark is None:
         benchmark={"symbol":"Azionario globale · proxy ARRotation","price":None,"price_date":rot.get("latest_bar"),
-                   "return_1m_pct":None,"return_3m_pct":None,"return_6m_pct":None,
+                   "trailing_1m_pct":None,"trailing_3m_pct":None,"trailing_6m_pct":None,
                    "return_20d_pct":safe_num((global_category or {}).get("ret20")),
                    "relative_20d_pct":safe_num((global_category or {}).get("rel20")),
                    "source":"ARRotation category median; not a tradable benchmark"}
@@ -295,6 +295,9 @@ def main():
             if age is not None and age>=90 and "return_3m_pct" not in rec: rec["return_3m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=180 and "return_6m_pct" not in rec: rec["return_6m_pct"]=rec["return_since_entry_pct"]
         old_bench=edition.get("benchmark") or {}
+        # I rendimenti trailing alla data di ingresso non sono checkpoint futuri.
+        for key in ("return_1m_pct","return_3m_pct","return_6m_pct"):
+            old_bench.pop(key,None)
         old_bench_base=safe_num(old_bench.get("price"))
         new_bench_price=safe_num(benchmark.get("price"))
         if old_bench_base and new_bench_price:

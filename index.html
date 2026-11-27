@@ -370,8 +370,10 @@ body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1
 <script>
 const RSE_JSON = 'https://giorgiogoldoni.github.io/RAPTOR_SCENARIO_ENGINE/data/market_data_rse.json';
 const GEO_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/data/bollettino_geografico.json';
-// Fonte ufficiale: repo sniperchatgpt / reports\nconst SNIPER_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json';
-// Feed generato e pubblicato dal workflow di bigchatgpt\nconst BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json'; // feed reale: {gen, sistemi, righe}
+// Fonte ufficiale: repo sniperchatgpt / reports
+const SNIPER_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json';
+// Feed generato e pubblicato dal workflow di bigchatgpt
+const BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json'; // feed reale: {gen, sistemi, righe}
 const TEM_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-tematici/main/tematici.json';
 const SET_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-settoriali/main/settoriali.json';
 const SIG_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-signal/main/data/signal.json';
@@ -923,5 +925,6 @@ async function loadAll(){
 loadAll();
 setInterval(loadAll,30*60*1000);
 </script>
-<script src="./tax-quant-adapter.js" defer></script>\n</body>
+<script src="./tax-quant-adapter.js" defer></script>
+</body>
 </html>

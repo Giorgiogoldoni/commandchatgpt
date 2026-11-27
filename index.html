@@ -289,7 +289,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Je
 </div>
 <script>
 const RSE_JSON = 'https://giorgiogoldoni.github.io/RAPTOR_SCENARIO_ENGINE/data/market_data_rse.json';
-const GEO_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-geografia/main/geografia.json';
+const GEO_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/data/bollettino_geografico.json';
+const SNIPER_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json';
+const BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json';
 const TEM_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-tematici/main/tematici.json';
 const SET_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-settoriali/main/settoriali.json';
 const SIG_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-signal/main/data/signal.json';
@@ -316,7 +318,7 @@ const CAT_LABELS={risk:'Volatilità',rates:'Tassi',commodity:'Commodity',fx:'Val
 const CAT_ORDER=['equity','risk','commodity','rates','fx','crypto','credit'];
 const PROB_LABELS={petrolio_alto:'Petrolio alto',guerra_commerciale:'Guerra commerciale',crisi_taiwan:'Crisi Taiwan',recessione_germania:'Recessione Germania',crisi_btp:'Crisi BTP',bce_alza:'BCE alza tassi',hard_landing_usa:'Hard landing USA',soft_landing:'Soft landing USA',stagflazione_usa:'Stagflazione USA',boom_ai:'Boom AI',flash_crash:'Flash crash',bear_market:'Bear market',bull_estremo:'Bull estremo',superciclo_commodity:'Superciclo commodity',dollaro_debole:'Dollaro debole',pace_ucraina:'Pace Ucraina',inflazione_strutturale:'Inflazione strutturale'};
 
-let rseData=null, geoData=null, temData=null, setData=null, sigData=null;
+let rseData=null, geoData=null, sniperData=null, bigData=null, temData=null, setData=null, sigData=null;
 
 function sentPillClass(s){
   if(!s)return'nd';
@@ -561,21 +563,29 @@ function renderAutonomous(){
   let html='';
   let totalPos=0,totalGain=0,gainCount=0,totalAlerts=[];
 
-  // GEOGRAFIA
+  // GEOGRAFIA CHATGPT (edizione del bollettino)
   if(geoData){
-    const tsGeo=tsFromDisplay(geoData.updated_display||'');
-    updateTS('ts-geo',tsGeo,true);
-    const paesiPos=geoData.paesi?.positions||[];
-    html+=buildAutoModule('🌍 PAESI',paesiPos,!paesiPos.length,geoData.paesi?.xeon_price,tsGeo,'badge-geo');
-    const naPos=geoData.new_area?.positions||[];
-    html+=buildAutoModule('🗺️ NEW AREA',naPos,!naPos.length,geoData.new_area?.xeon_price,tsGeo,'badge-geo');
-    totalPos+=paesiPos.length+naPos.length;
-    [...paesiPos,...naPos].forEach(p=>{if(p.current_gain_pct!=null){totalGain+=p.current_gain_pct;gainCount++;}});
-    [...paesiPos,...naPos].filter(p=>p.target_hit||p.pre_alert).forEach(p=>totalAlerts.push({mod:'Geografia',ticker:(p.ticker||'').replace(/\.\w+$/,''),type:p.target_hit?'target':'pre_alert',gain:p.current_gain_pct}));
+    const edition=geoData.editions?.[0]||{};
+    const areas=edition.areas||[];
+    const eligible=areas.filter(x=>x.eligible_trend===true).sort((a,b)=>(b.composite_momentum||0)-(a.composite_momentum||0));
+    const tsGeo=edition.price_date||edition.date||'—';
+    updateTS('ts-geo',tsGeo,!edition.data_stale);
+    html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-geo">🌍 GEOGRAFIA CHATGPT</span></div><div class="auto-module-meta">${edition.data_stale?'⚠️ DATI STALE':'✓ '+tsGeo}</div></div><div class="auto-module-body"><div style="font-size:11px;margin-bottom:8px">${edition.market_summary||edition.headline||'Bollettino geografico'}</div><div style="font-weight:700;margin-bottom:5px">Top trend eligible</div>${eligible.slice(0,5).map(x=>`<div class="signal-row"><div><div class="signal-name">${x.ticker}</div><div style="font-size:10px;color:var(--text3)">${x.name||x.area}</div></div><div class="signal-score" style="color:${(x.composite_momentum||0)>=0?'var(--bull)':'var(--bear)'}">${Number(x.composite_momentum||0).toFixed(2)}%</div><span class="signal-pill ${x.above_sma200?'pill-buy':'pill-sell'}">${x.above_sma200?'SMA200 ↑':'SMA200 ↓'}</span></div>`).join('')||'<div class="empty">Nessun candidato eleggibile</div>'}<a href="https://giorgiogoldoni.github.io/geografiachatgpt/" target="_blank" rel="noopener">Apri GeografiaChatGPT ↗</a></div></div>`;
   } else {
     updateTS('ts-geo','ERR',false);
-    html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-geo">🌍 GEOGRAFIA</span></div><div class="auto-module-meta" style="color:var(--bear)">Errore caricamento</div></div></div>`;
+    html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-geo">🌍 GEOGRAFIA CHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Errore caricamento</div></div></div>`;
   }
+
+  // SNIPER — signals paper only, not orders
+  if(sniperData){
+    const sigs=sniperData.signals||[];
+    const counts={};sigs.forEach(x=>counts[x.category]=(counts[x.category]||0)+1);
+    const top=sigs.slice(0,6);
+    html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta">${sniperData.paper_only?'PAPER ONLY':'SOURCE' } · ${sniperData.generated_utc||'—'}</div></div><div class="auto-module-body"><div style="font-weight:700;margin-bottom:5px">${sigs.length} segnali · ${Object.entries(counts).map(([k,v])=>k+': '+v).join(' | ')}</div><div style="font-size:10px;color:var(--orange);margin-bottom:7px">Segnali simulati: non sono ordini o raccomandazioni automatiche.</div>${top.map(x=>`<div class="signal-row"><div><div class="signal-name">${x.symbol}</div><div style="font-size:10px;color:var(--text3)">${x.engine} ${x.variant} · ${x.signal_date}</div></div><span class="signal-pill pill-hold">${x.category}</span></div>`).join('')}<a href="https://giorgiogoldoni.github.io/sniperchatgpt/" target="_blank" rel="noopener">Apri SniperChatGPT ↗</a></div></div>`;
+  } else html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Fonte non disponibile</div></div></div>`;
+
+  // BIG — link out; current JSON endpoint is not published in repository, show honest availability
+  html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta" style="color:var(--orange)">Feed non verificabile</div></div><div class="auto-module-body"><div style="font-size:11px;margin-bottom:7px">Il repository dichiara il feed data/index.json ma il file non risulta presente nel branch pubblicato. Non importo segnali incompleti o inventati.</div><a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`;
 
   // TEMATICI
   if(temData){
@@ -690,11 +700,12 @@ function loadLocalSignals(){
 
 async function loadAll(){
   document.getElementById('perf-updated').textContent='Caricamento...';
-  const [rse,geo,tem,set,sig]=await Promise.allSettled([
-    fetchJSON(RSE_JSON),fetchJSON(GEO_JSON),fetchJSON(TEM_JSON),fetchJSON(SET_JSON),fetchJSON(SIG_JSON)
+  const [rse,geo,sniper,tem,set,sig]=await Promise.allSettled([
+    fetchJSON(RSE_JSON),fetchJSON(GEO_JSON),fetchJSON(SNIPER_JSON),fetchJSON(TEM_JSON),fetchJSON(SET_JSON),fetchJSON(SIG_JSON)
   ]);
   rseData=rse.status==='fulfilled'?rse.value:null;
   geoData=geo.status==='fulfilled'?geo.value:null;
+  sniperData=sniper.status==='fulfilled'?sniper.value:null;
   temData=tem.status==='fulfilled'?tem.value:null;
   setData=set.status==='fulfilled'?set.value:null;
   sigData=sig.status==='fulfilled'?sig.value:null;

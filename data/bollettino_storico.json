@@ -11,16 +11,13 @@
         "symbol": "ACWI.MI",
         "price": 601.89001,
         "price_date": "2026-11-27",
-        "return_1m_pct": -3.51,
-        "return_3m_pct": -0.71,
-        "return_6m_pct": 0.93,
         "source": "Yahoo Finance adjusted close",
         "currency": "EUR",
         "return_20d_pct": -2.36,
         "relative_20d_pct": -1.32,
         "latest_price": 601.89001,
         "latest_price_date": "2026-11-27",
-        "return_since_entry_pct": 0.0
+        "return_since_entry_pct": 0
       },
       "recommendations": [
         {
@@ -31,9 +28,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato; zona ingresso",
           "latest_price": 35.28499984741211,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         },
         {
           "ticker": "GRC.MI",
@@ -43,9 +40,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato; attendere ritracciamento",
           "latest_price": 2.86299991607666,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         },
         {
           "ticker": "FLXI.MI",
@@ -55,9 +52,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); rotazione positiva e ampiezza >=60%; nessun BUY BIG confermato; non inseguire",
           "latest_price": 39.974998474121094,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         },
         {
           "ticker": "D5BI.DE",
@@ -67,9 +64,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato; zona ingresso",
           "latest_price": 8.065999984741211,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         },
         {
           "ticker": "IAEX.AS",
@@ -79,9 +76,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato; zona ingresso",
           "latest_price": 109.80000305175781,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         },
         {
           "ticker": "CSCA.MI",
@@ -91,9 +88,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato; zona ingresso",
           "latest_price": 273.4100036621094,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         },
         {
           "ticker": "SJPA.MI",
@@ -103,9 +100,9 @@
           "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato; attendere consolidamento",
           "latest_price": 70.38999938964844,
           "latest_price_date": "2026-11-27",
-          "return_since_entry_pct": 0.0,
-          "benchmark_return_since_entry_pct": 0.0,
-          "excess_return_vs_benchmark_pct": 0.0
+          "return_since_entry_pct": 0,
+          "benchmark_return_since_entry_pct": 0,
+          "excess_return_vs_benchmark_pct": 0
         }
       ],
       "buy_count": 0,

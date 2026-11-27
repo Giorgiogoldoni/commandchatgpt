@@ -63,7 +63,8 @@ def fetch_yahoo_benchmark(symbol="ACWI.MI"):
         if len(values)<130: return None
         latest=values[-1][1]
         def ret(n): return round((latest/values[-(n+1)][1]-1)*100,2) if len(values)>n else None
-        return {"symbol":symbol,"price":round(latest,5),"price_date":dt.datetime.fromtimestamp(values[-1][0],dt.timezone.utc).date().isoformat(),
+        return {"symbol":symbol,"name":"Amundi MSCI All Country World UCITS ETF EUR Acc","isin":"LU1829220216",
+                "price":round(latest,5),"price_date":dt.datetime.fromtimestamp(values[-1][0],dt.timezone.utc).date().isoformat(),
                 "return_1m_pct":ret(21),"return_3m_pct":ret(63),"return_6m_pct":ret(126),
                 "source":"Yahoo Finance adjusted close","currency":(result.get("meta") or {}).get("currency")}
     except Exception as e:

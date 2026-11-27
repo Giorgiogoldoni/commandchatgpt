@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-11-27T19:20:17.873277+00:00",
-  "generated_local": "2026-11-27T20:20:17.873277+01:00",
+  "generated_utc": "2026-11-27T19:20:37.454092+00:00",
+  "generated_local": "2026-11-27T20:20:37.454092+01:00",
   "edition": "STRAORDINARIA",
   "market": {
     "regime": "PRUDENZA SELETTIVA",
@@ -158,7 +158,7 @@
   },
   "geography": {
     "generated_at": "2026-11-27T16:08:19.616448+00:00",
-    "age_days": 0.13333894917824074,
+    "age_days": 0.13356299847222222,
     "stale": false,
     "latest_price_date": "2026-11-27",
     "trend_candidates": 7,
@@ -405,7 +405,7 @@
   },
   "rotation": {
     "generated": "2026-11-27 18:23 UTC",
-    "age_days": 0.03981599138888889,
+    "age_days": 0.040040040671296295,
     "stale": false,
     "latest_bar": "2026-11-27",
     "universe": 2342,
@@ -551,7 +551,7 @@
   },
   "big": {
     "generated": "2026-11-27 16:25 UTC",
-    "age_days": 0.12176043579861111,
+    "age_days": 0.12198448508101851,
     "stale": false,
     "rows": 2342,
     "systems": 12,
@@ -562,7 +562,7 @@
     "generated": "2026-11-26T10:32:09.371381+00:00",
     "paper_only": true,
     "signal_count": 126,
-    "age_days": 1.366790859537037,
+    "age_days": 1.3670149087615742,
     "rrg_generated": "2026-11-27T16:09:22.388506+00:00",
     "rrg_instruments": 284,
     "rrg_fetch_ok": 284,
@@ -964,7 +964,7 @@
   },
   "factors": {
     "updated": "2026-11-27T16:08:00.480160+00:00",
-    "age_days": 0.1335604398148148,
+    "age_days": 0.13378449041666665,
     "stale": false,
     "benchmark": "SWDA.MI",
     "frequency": "weekly",
@@ -1135,7 +1135,7 @@
     "as_of": "2026-11-13",
     "snapshot_stale": true,
     "history_fetched_at": "2026-11-27T16:06:00+00:00",
-    "history_age_days": 0.13495488042824075,
+    "history_age_days": 0.13517892978009258,
     "history_latest_date": "2026-11-27",
     "history_status": "ok",
     "history_stale": false,

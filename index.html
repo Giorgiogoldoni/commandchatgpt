@@ -584,8 +584,14 @@ function renderAutonomous(){
     html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta">${sniperData.paper_only?'PAPER ONLY':'SOURCE' } · ${sniperData.generated_utc||'—'}</div></div><div class="auto-module-body"><div style="font-weight:700;margin-bottom:5px">${sigs.length} segnali · ${Object.entries(counts).map(([k,v])=>k+': '+v).join(' | ')}</div><div style="font-size:10px;color:var(--orange);margin-bottom:7px">Segnali simulati: non sono ordini o raccomandazioni automatiche.</div>${top.map(x=>`<div class="signal-row"><div><div class="signal-name">${x.symbol}</div><div style="font-size:10px;color:var(--text3)">${x.engine} ${x.variant} · ${x.signal_date}</div></div><span class="signal-pill pill-hold">${x.category}</span></div>`).join('')}<a href="https://giorgiogoldoni.github.io/sniperchatgpt/" target="_blank" rel="noopener">Apri SniperChatGPT ↗</a></div></div>`;
   } else html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Fonte non disponibile</div></div></div>`;
 
-  // BIG — link out; current JSON endpoint is not published in repository, show honest availability
-  html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta" style="color:var(--orange)">Feed non verificabile</div></div><div class="auto-module-body"><div style="font-size:11px;margin-bottom:7px">Il repository dichiara il feed data/index.json ma il file non risulta presente nel branch pubblicato. Non importo segnali incompleti o inventati.</div><a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`;
+  // BIGCHATGPT feed (published by its Pages workflow)
+  if(bigData&&Array.isArray(bigData.righe)){
+    const rows=bigData.righe;
+    const active=rows.filter(x=>['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase()));
+    const exits=rows.filter(x=>['ESCI','SELL'].includes(String(x.sta||'').toUpperCase()));
+    const newest=rows.slice().sort((a,b)=>String(b.u||'').localeCompare(String(a.u||''))).slice(0,5);
+    html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta">Generato ${bigData.gen||'—'}</div></div><div class="auto-module-body"><div style="font-weight:700;margin-bottom:7px">${rows.length} ETF in universo · ${active.length} TIENI/HOLD · ${exits.length} ESCI</div>${newest.map(x=>`<div class="signal-row"><div><div class="signal-name">${x.t}</div><div style="font-size:10px;color:var(--text3)">${x.n||''} · ${x.u||'—'}</div></div><span class="signal-pill ${['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase())?'pill-buy':'pill-hold'}">${x.sta||'N/D'}</span></div>`).join('')}<a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`;
+  } else html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Feed non disponibile</div></div><div class="auto-module-body">Il feed JSON di BIG non è raggiungibile. Nessun segnale viene inventato. <a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`;
 
   // TEMATICI
   if(temData){
@@ -700,12 +706,13 @@ function loadLocalSignals(){
 
 async function loadAll(){
   document.getElementById('perf-updated').textContent='Caricamento...';
-  const [rse,geo,sniper,tem,set,sig]=await Promise.allSettled([
-    fetchJSON(RSE_JSON),fetchJSON(GEO_JSON),fetchJSON(SNIPER_JSON),fetchJSON(TEM_JSON),fetchJSON(SET_JSON),fetchJSON(SIG_JSON)
+  const [rse,geo,sniper,big,tem,set,sig]=await Promise.allSettled([
+    fetchJSON(RSE_JSON),fetchJSON(GEO_JSON),fetchJSON(SNIPER_JSON),fetchJSON(BIG_JSON),fetchJSON(TEM_JSON),fetchJSON(SET_JSON),fetchJSON(SIG_JSON)
   ]);
   rseData=rse.status==='fulfilled'?rse.value:null;
   geoData=geo.status==='fulfilled'?geo.value:null;
   sniperData=sniper.status==='fulfilled'?sniper.value:null;
+  bigData=big.status==='fulfilled'?big.value:null;
   temData=tem.status==='fulfilled'?tem.value:null;
   setData=set.status==='fulfilled'?set.value:null;
   sigData=sig.status==='fulfilled'?sig.value:null;

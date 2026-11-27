@@ -31,8 +31,14 @@ def fetch(name, url):
         return None
 def parse_date(s):
     if not s: return None
+    raw=str(s).strip()
+    if raw.endswith(" UTC"): raw=raw[:-4].strip()+"+00:00"
+    raw=raw.replace("Z","+00:00")
+    if "T" not in raw and " " in raw: raw=raw.replace(" ","T",1)
     try:
-        return dt.datetime.fromisoformat(str(s).replace(" UTC","+00:00").replace("Z","+00:00")).replace(tzinfo=dt.timezone.utc) if "T" not in str(s) else dt.datetime.fromisoformat(str(s).replace("Z","+00:00")).astimezone(dt.timezone.utc)
+        parsed=dt.datetime.fromisoformat(raw)
+        if parsed.tzinfo is None: parsed=parsed.replace(tzinfo=dt.timezone.utc)
+        return parsed.astimezone(dt.timezone.utc)
     except Exception:
         try: return dt.datetime.strptime(str(s),"%Y-%m-%d").replace(tzinfo=dt.timezone.utc)
         except Exception: return None

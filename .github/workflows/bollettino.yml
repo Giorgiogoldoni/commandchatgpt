@@ -58,7 +58,11 @@ jobs:
           git add data/bollettino.json data/bollettino_storico.json
           if git diff --cached --quiet; then echo "Nessuna variazione da salvare"; exit 0; fi
           git commit -m "Aggiorna bollettino CommandChatGPT"
-          git push
+          for i in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep 5
+          done
+          exit 1
       - name: Configura GitHub Pages
         if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         uses: actions/configure-pages@v5

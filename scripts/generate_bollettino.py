@@ -164,7 +164,7 @@ def main():
     accum_count=sum(1 for x in recs if x["label"]=="ACCUMULO")
     report={
       "schema_version":1,"generated_utc":now.isoformat(),"generated_local":local.isoformat(),
-      "edition":"11:00" if local.hour<17 else "23:00",
+      "edition":"11:00" if local.hour==11 else ("23:00" if local.hour==23 else "STRAORDINARIA"),
       "market":{"regime":regime,"note":regime_note,"benchmark_return_20":median20,"category_count":len(cats),"positive_relative_categories":len(positive_cats),"top_categories":top_categories},
       "flows":{"as_of":flow_asof,"flow_usd":flow_usd,"flow_pct_assets":flow_total.get("flowPctOfStartNetAssets"),"inflows_usd":flow_total.get("inflowsUsd"),"outflows_usd":flow_total.get("outflowsUsd"),"funds_in":flow_total.get("fundsIn"),"funds_out":flow_total.get("fundsOut"),"quality":flow_quality},
       "geography":{"generated_at":geo.get("generated_at"),"latest_price_date":geo.get("latest_price_date"),"trend_candidates":len(geo_rows),"top":recs},

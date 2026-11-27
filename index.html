@@ -96,7 +96,10 @@ function renderRecommendations(r){
  if(!arr.length)return '<div class="warning">Nessun acquisto confermato. I motori non hanno prodotto una convergenza sufficiente oppure manca una fonte necessaria.</div>';
  return arr.slice(0,8).map(x=>{
   const kind=x.label==="BUY"?"ok":x.label==="ACCUMULO"?"blue":x.label==="ATTESA"?"bad":"warn";
-  return '<article class="rec"><div class="rec-top"><span class="ticker">'+esc(x.ticker)+'</span>'+pill(x.label,kind)+'</div><div class="rec-name">'+esc(x.name)+'</div><div class="rec-meta"><span>'+esc(x.geography||"Area non classificata")+'</span><span>Momentum '+pct(x.composite_momentum)+'</span><span>SMA200 '+(x.above_sma200?"sopra":"—")+'</span></div><div class="reason">'+esc(x.reason)+'</div>'+(x.isin?'<div class="small">ISIN '+esc(x.isin)+'</div>':'')+'</article>';
+  const action=x.label==="ACCUMULO"?"Ingresso progressivo; evitare di inseguire sedute euforiche":x.label==="BUY"?"Segnale d'acquisto: verificare prezzo e rischio prima dell'ingresso":x.label==="ATTESA"?"Nessun ingresso finché non torna la conferma":"Monitorare; attendere una conferma di rotazione";
+  const price=x.price===null||x.price===undefined?"—":n(x.price,2);
+  const rotation=x.rotation_ret20===null||x.rotation_ret20===undefined?"non confermata":n(x.rotation_ret20,2)+"% / RS "+n(x.rotation_rel20,2)+"%";
+  return '<article class="rec"><div class="rec-top"><span class="ticker">'+esc(x.ticker)+'</span>'+pill(x.label,kind)+'</div><div class="rec-name">'+esc(x.name)+'</div><div class="rec-meta"><span>'+esc(x.geography||"Area non classificata")+'</span><span>Prezzo rif. '+esc(price)+' ('+esc(x.price_date||"—")+')</span><span>Momentum 12m '+pct(x.momentum_12m)+'</span><span>Composite '+pct(x.composite_momentum)+'</span><span>SMA200 '+(x.above_sma200?"sopra":"—")+'</span><span>Rotazione 20g '+esc(rotation)+'</span></div><div class="reason">'+esc(action)+'. '+esc(x.reason)+'</div><div class="small">BIG: '+esc(x.big_state||"non disponibile")+(x.isin?' · ISIN '+esc(x.isin):'')+'</div></article>';
  }).join("");
 }
 async function loadReport(){

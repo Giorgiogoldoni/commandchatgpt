@@ -16,7 +16,9 @@ URLS = {
  "Geografia UCITS": "https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/ucits_geography.json",
  "SniperChatGPT": "https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json",
  "Sniper RRG": "https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/sniper_rrg_summary.json",
+ "FactorChatGPT RRG": "https://raw.githubusercontent.com/Giorgiogoldoni/Factorchatgpt/main/data/rrg.json",
  "TAX snapshot": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/market_snapshot.json",
+ "TAX storico": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/history.json",
  "TAX strategia": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/strategy.json",
  "TAX strumenti": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/instruments.json",
  "TAX watchlist": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/watchlist.json",
@@ -88,7 +90,9 @@ def main():
     ucits=data["Geografia UCITS"] or {}
     sniper=data["SniperChatGPT"] or {}
     rrg=data["Sniper RRG"] or {}
+    factor_data=data["FactorChatGPT RRG"] or {}
     tax=data["TAX snapshot"] or {}
+    tax_history=data["TAX storico"] or {}
     strat=data["TAX strategia"] or {}
     instruments=data["TAX strumenti"] or {}
     watch=data["TAX watchlist"] or {}
@@ -100,6 +104,10 @@ def main():
     top_categories=[]
     for c in cats_sorted[:8]:
         top_categories.append({k:c.get(k) for k in ("group","category","n","ret5","ret20","ret60","rel20","rel60","breadth20","acceleration","score","status","date")})
+    sector_theme_categories=[
+        {k:c.get(k) for k in ("group","category","n","ret5","ret20","ret60","rel20","rel60","breadth20","acceleration","score","status","date","tickers")}
+        for c in cats_sorted if c.get("group") in ("Settori","Temi")
+    ][:16]
     positive_cats=[c for c in cats if (safe_num(c.get("ret20")) or 0)>0 and (safe_num(c.get("rel20")) or 0)>0]
     median20=rot.get("benchmark",{}).get("20")
     if median20 is not None and float(median20)<-0.5:
@@ -217,13 +225,78 @@ def main():
     rotation_stale=rotation_age is None or rotation_age>1.5
     geo_stale=geo_age is None or geo_age>1.5
     tax_age=age_days(tax.get("as_of"))
-    tax_stale=tax_age is None or tax_age>3
+    tax_history_age=age_days(tax_history.get("fetched_at"))
+    tax_history_stale=(tax_history_age is None or tax_history_age>2.0
+                       or tax_history.get("status")=="unavailable"
+                       or not tax_history.get("instruments"))
+    tax_series=tax_history.get("instruments",{}) or {}
+    tax_position_signals=[]
+    for position in (portfolio.get("positions",[]) or []):
+        ticker=str(position.get("ticker") or "").upper()
+        series=(tax_series.get(ticker) or {}).get("prices",[])
+        if not ticker or not series:
+            tax_position_signals.append({"ticker":ticker or position.get("raw_name"),"status":"DATI NON DISPONIBILI","signal":"ATTENDERE","reason":"Serie prezzi assente o ticker non identificato"})
+            continue
+        field="adjclose" if len(series)>0 and series[-1].get("adjclose") else "close"
+        values=[safe_num(p.get(field) or p.get("close")) for p in series]
+        values=[v for v in values if v is not None and v>0]
+        if len(values)<39:
+            tax_position_signals.append({"ticker":ticker,"status":"STORICO INSUFFICIENTE","signal":"ATTENDERE","observations":len(values),"last_date":series[-1].get("date")})
+            continue
+        last=values[-1]
+        ma38=sum(values[-38:])/38
+        ema=values[0]
+        alpha=2/(20+1)
+        for value in values[1:]:
+            ema=value*alpha+ema*(1-alpha)
+        roc38=(last/values[-39]-1)*100
+        ao=(sum(values[-5:])/5)-(sum(values[-34:])/34) if len(values)>=34 else None
+        ma200=sum(values[-200:])/200 if len(values)>=200 else None
+        trend=bool(ma200 is not None and last>ma200)
+        momentum=roc38>0
+        if ma200 is None:
+            signal="ATTENDERE"; status="STORICO < 200 SEDUTE"
+        elif trend and momentum and ao is not None and ao>0:
+            signal="MANTENERE / MONITORARE"; status="TREND POSITIVO"
+        elif not trend and not momentum:
+            signal="RIDURRE RISCHIO / VERIFICARE"; status="DEBOLEZZA CONFERMATA"
+        else:
+            signal="ATTENDERE CONFERMA"; status="SEGNALE MISTO"
+        cost=safe_num(position.get("average_cost"))
+        last_close=safe_num(series[-1].get("close"))
+        tax_position_signals.append({
+            "ticker":ticker,"name":position.get("raw_name"),"last_price":last_close,
+            "last_date":series[-1].get("date"),"average_cost":cost,
+            "return_vs_cost_pct":round((last_close/cost-1)*100,2) if last_close and cost else None,
+            "ma38":round(ma38,4),"ma200":round(ma200,4) if ma200 else None,
+            "roc38_pct":round(roc38,2),"ema20":round(ema,4),"ao_close_proxy":round(ao,4) if ao is not None else None,
+            "above_ma200":trend,"signal":signal,"status":status
+        })
+    tax_history_last=tax_history.get("latest_date")
+    tax_covered=len(tax_series)
+    tax_factor_assets=[]
+    for asset in (factor_data.get("assets",[]) or []):
+        trail=asset.get("trail",[]) or []
+        if not trail: continue
+        point=trail[-1]
+        tax_factor_assets.append({
+            "ticker":asset.get("ticker"),"label":asset.get("label"),
+            "factor":str(asset.get("label") or "").split("·")[0].strip(),
+            "quadrant":asset.get("quadrant"),"date":point.get("date"),
+            "rs_ratio":point.get("x"),"rs_momentum":point.get("y")
+        })
+    factor_age=age_days(factor_data.get("updated"))
+    factor_stale=factor_age is None or factor_age>3
+    quadrant_order={"Leading":0,"Improving":1,"Weakening":2,"Lagging":3}
+    tax_factor_assets.sort(key=lambda x:(quadrant_order.get(x.get("quadrant"),4),x.get("factor") or "",x.get("ticker") or ""))
     # Recommendation gate: if a required feed is missing/stale, downgrade any BUY.
     blockers=[]
     if not statuses["BIGCHATGPT"]["ok"]: blockers.append("Feed BIG non disponibile: BUY quantitativi sospesi.")
+    if not statuses["FactorChatGPT RRG"]["ok"]: blockers.append("Feed FactorChatGPT RRG non disponibile: fattori esclusi dal ranking.")
     if not statuses["GeografiaChatGPT"]["ok"]: blockers.append("Feed geografico non disponibile: ranking geografici sospesi.")
     if not statuses["ARRotation"]["ok"]: blockers.append("Feed ARRotation non disponibile: conferme di rotazione sospese.")
-    if tax_stale: blockers.append("TAX: snapshot prezzi obsoleto; nessuna decisione sul portafoglio.")
+    if tax_history_stale: blockers.append("TAX: storico prezzi mancante/obsoleto; segnali sul portafoglio sospesi.")
+    if factor_stale: blockers.append("FactorChatGPT: RRG fattoriale non aggiornato; rotazione fattori esclusa.")
     if sniper_stale: blockers.append("Sniper: segnali non aggiornati; esclusi dalle decisioni operative.")
     if big_stale: blockers.append("BIG: feed tecnico non aggiornato; BUY quantitativi sospesi.")
     if rotation_stale: blockers.append("ARRotation: feed non aggiornato; conferme di rotazione sospese.")
@@ -244,7 +317,9 @@ def main():
       "rotation":{"generated":rot.get("generated"),"age_days":rotation_age,"stale":rotation_stale,"latest_bar":rot.get("latest_bar"),"universe":rot.get("universe"),"eligible":rot.get("eligible"),"loaded":rot.get("tickers_loaded"),"candidate_count":(sel.get("riepilogo") or {}).get("candidati"),"exit_count":(sel.get("riepilogo") or {}).get("uscite"),"open_signals":(sel.get("riepilogo") or {}).get("segnalazioni_aperte"),"candidates":ar_candidates,"top_categories":top_categories},
       "big":{"generated":big.get("gen"),"age_days":big_age,"stale":big_stale,"rows":len(big.get("righe",[]) or []),"systems":len(big.get("sistemi",[]) or []),"buy_count":buy_count,"accumulate_count":accum_count},
       "sniper":{"generated":sniper.get("generated_utc"),"paper_only":bool(sniper.get("paper_only",True)),"signal_count":sniper.get("signal_count",len(sniper.get("signals",[]) or [])),"age_days":sniper_age,"rrg_generated":rrg.get("generated_utc"),"rrg_instruments":rrg.get("instruments"),"rrg_fetch_ok":(rrg.get("fetch_status") or {}).get("ok"),"rrg_fetch_total":(rrg.get("fetch_status") or {}).get("total")},
-      "tax":{"as_of":tax.get("as_of"),"status":tax.get("status"),"stale":tax_stale,"age_days":tax_age,"instrument_count":len(instruments.get("instruments",[]) or []),"watchlist_count":len(watch.get("tickers",[]) or []),"portfolio_positions":len(portfolio.get("positions",[]) or []),"strategy":strat.get("model_name"),"roc":(strat.get("parameters") or {}).get("roc_period"),"ma_fast":(strat.get("parameters") or {}).get("moving_average_fast"),"ma_slow":(strat.get("parameters") or {}).get("moving_average_slow")},
+      "sector_themes":{"as_of":rot.get("latest_bar"),"categories":sector_theme_categories,"sector_count":sum(1 for x in sector_theme_categories if x.get("group")=="Settori"),"theme_count":sum(1 for x in sector_theme_categories if x.get("group")=="Temi"),"method":"Rotazione relativa basata su prezzi, non flussi monetari."},
+      "factors":{"updated":factor_data.get("updated"),"age_days":factor_age,"stale":factor_stale,"benchmark":factor_data.get("benchmark"),"frequency":factor_data.get("frequency"),"method":factor_data.get("method"),"assets":tax_factor_assets,"quadrants":{q:sum(1 for x in tax_factor_assets if x.get("quadrant")==q) for q in ("Leading","Improving","Weakening","Lagging")}},
+      "tax":{"as_of":tax.get("as_of"),"snapshot_stale":tax_age is None or tax_age>3,"history_fetched_at":tax_history.get("fetched_at"),"history_age_days":tax_history_age,"history_latest_date":tax_history_last,"history_status":tax_history.get("status"),"history_stale":tax_history_stale,"history_instruments":tax_covered,"history_unresolved":len(tax_history.get("unresolved",[]) or []),"instrument_count":len(instruments.get("instruments",[]) or []),"watchlist_count":len(watch.get("tickers",[]) or []),"portfolio_positions":len(portfolio.get("positions",[]) or []),"position_signals":tax_position_signals,"strategy":strat.get("model_name"),"roc":(strat.get("parameters") or {}).get("roc_period"),"ma_fast":(strat.get("parameters") or {}).get("moving_average_fast"),"ma_slow":(strat.get("parameters") or {}).get("moving_average_slow")},
       "recommendations":recs,"buy_count":buy_count,"accumulate_count":accum_count,"blockers":blockers,
       "sources":statuses,
       "disclaimer":"Bollettino quantitativo informativo. BUY richiede conferma simultanea BIG + trend geografico + rotazione positiva; ACCUMULO richiede trend geografico e rotazione positiva. Nessun ordine automatico. I segnali Sniper paper-only sono esclusi."

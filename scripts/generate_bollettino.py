@@ -48,6 +48,26 @@ def age_days(s):
 def safe_num(v):
     try: return float(v) if v is not None else None
     except Exception: return None
+def fetch_yahoo_benchmark(symbol="ACWI.MI"):
+    try:
+        end=int(dt.datetime.now(dt.timezone.utc).timestamp()); start=end-370*86400
+        url=f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={start}&period2={end}&interval=1d&events=div%2Csplits"
+        req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 CommandChatGPT/1.0"})
+        with urllib.request.urlopen(req,timeout=20) as response: payload=json.loads(response.read().decode("utf-8"))
+        result=payload["chart"]["result"][0]; stamps=result.get("timestamp",[]) or []
+        indicators=result.get("indicators",{}); adj=(indicators.get("adjclose") or [{}])[0].get("adjclose") or []
+        close=(indicators.get("quote") or [{}])[0].get("close") or []; values=[]
+        for i,stamp in enumerate(stamps):
+            value=adj[i] if i<len(adj) and adj[i] is not None else (close[i] if i<len(close) else None)
+            if value is not None and float(value)>0: values.append((int(stamp),float(value)))
+        if len(values)<130: return None
+        latest=values[-1][1]
+        def ret(n): return round((latest/values[-(n+1)][1]-1)*100,2) if len(values)>n else None
+        return {"symbol":symbol,"price":round(latest,5),"price_date":dt.datetime.fromtimestamp(values[-1][0],dt.timezone.utc).date().isoformat(),
+                "return_1m_pct":ret(21),"return_3m_pct":ret(63),"return_6m_pct":ret(126),
+                "source":"Yahoo Finance adjusted close","currency":(result.get("meta") or {}).get("currency")}
+    except Exception as e:
+        print("BENCHMARK ERROR",repr(e)); return None
 def state_text(row):
     v=row.get("sta")
     if isinstance(v,list): return " ".join(map(str,v)).upper()
@@ -90,6 +110,17 @@ def main():
     else:
         regime="MERCATO MISTO"
         regime_note="La leadership è concentrata: preferire ingressi graduali e mantenere liquidità."
+    global_category=next((c for c in cats if c.get("group")=="Geografia" and c.get("category")=="Azionario globale"),None)
+    benchmark=fetch_yahoo_benchmark("ACWI.MI")
+    if benchmark is None:
+        benchmark={"symbol":"Azionario globale · proxy ARRotation","price":None,"price_date":rot.get("latest_bar"),
+                   "return_1m_pct":None,"return_3m_pct":None,"return_6m_pct":None,
+                   "return_20d_pct":safe_num((global_category or {}).get("ret20")),
+                   "relative_20d_pct":safe_num((global_category or {}).get("rel20")),
+                   "source":"ARRotation category median; not a tradable benchmark"}
+    elif global_category:
+        benchmark["return_20d_pct"]=safe_num(global_category.get("ret20"))
+        benchmark["relative_20d_pct"]=safe_num(global_category.get("rel20"))
     flow_total=(flows.get("total") or {})
     flow_asof=flows.get("asOf")
     flow_usd=flow_total.get("flowUsd")
@@ -126,21 +157,42 @@ def main():
         big_buy="BUY" in big_state and "EXIT" not in big_state and "ESCI" not in big_state
         big_exit=("EXIT" in big_state or "ESCI" in big_state or "SELL" in big_state)
         cat_confirm=bool(cat and (safe_num(cat.get("ret20")) or 0)>0 and (safe_num(cat.get("rel20")) or 0)>0 and (safe_num(cat.get("breadth20")) or 0)>=60)
+        price=safe_num(g.get("price")); sma=safe_num(g.get("sma200"))
+        gap_pct=((price/sma)-1)*100 if price is not None and sma is not None and sma>0 else None
+        zone_low=round(sma*1.02,4) if sma is not None else None
+        zone_high=round(sma*1.05,4) if sma is not None else None
+        if gap_pct is None: entry_status="LIVELLI NON DISPONIBILI"
+        elif gap_pct<=0: entry_status="SOTTO SMA200"
+        elif gap_pct<2: entry_status="ATTENDERE CONSOLIDAMENTO"
+        elif gap_pct<=5: entry_status="ZONA INGRESSO"
+        elif gap_pct<=8: entry_status="ATTENDERE RITRACCIAMENTO"
+        else: entry_status="NON INSEGUIRE"
+        risk_at_zone_pct=((zone_high-sma)/zone_high)*100 if zone_high and sma else None
+        risk_budget_pct=0.5
+        position_pct=min(10.0,(risk_budget_pct/risk_at_zone_pct)*100) if risk_at_zone_pct and risk_at_zone_pct>0 else None
+        in_entry_zone=entry_status=="ZONA INGRESSO"
         if big_exit: label="ATTESA"
-        elif big_buy and cat_confirm: label="BUY"
-        elif cat_confirm: label="ACCUMULO"
+        elif big_buy and cat_confirm and in_entry_zone: label="BUY"
+        elif cat_confirm and in_entry_zone: label="ACCUMULO"
         else: label="WATCHLIST"
-        # Evita di trasformare segnali isolati in raccomandazioni: le tre condizioni sono esplicite.
+        reason="Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo)"+("; rotazione positiva e ampiezza >=60%" if cat_confirm else "; conferma di rotazione non completa")+("; segnale BIG BUY" if big_buy else "; nessun BUY BIG confermato")+"; "+entry_status.lower()
         recommendations.append({
-            "ticker":ticker,"instrument_ticker":g.get("ticker"),"name":g.get("name") or g.get("fund") or g.get("geography") or ticker,
-            "geography":g.get("geography") or g.get("country") or g.get("module") or g.get("_group"),
-            "isin":g.get("isin"),"price":g.get("price"),"price_date":g.get("price_date") or g.get("latest_price_date"),
-            "composite_momentum":g.get("composite_momentum"),"momentum_12m":g.get("momentum_12m"),
+            "ticker":ticker,"instrument_ticker":g.get("ticker"),"name":g.get("fund") or g.get("name") or g.get("country") or ticker,
+            "geography":g.get("country") or g.get("geography") or g.get("module") or g.get("_group"),
+            "isin":g.get("isin"),"price":price,"price_date":g.get("price_date") or g.get("latest_price_date"),
+            "sma200":sma,"sma200_gap_pct":round(gap_pct,2) if gap_pct is not None else None,
+            "entry_zone_low":zone_low,"entry_zone_high":zone_high,"entry_status":entry_status,
+            "invalidation_level":round(sma,4) if sma is not None else None,
+            "invalidation_rule":"Rivalutare/uscire solo dopo chiusura confermata sotto SMA200; non è uno stop garantito",
+            "risk_budget_pct":risk_budget_pct,"max_position_pct":10.0,
+            "indicative_position_pct":round(position_pct,1) if position_pct is not None else None,
+            "composite_momentum":g.get("composite_momentum"),"momentum_3m":g.get("momentum_3m"),
+            "momentum_6m":g.get("momentum_6m"),"momentum_12m":g.get("momentum_12m"),
+            "modified_sharpe":g.get("modified_sharpe"),"volatility_annual":g.get("volatility_annual"),
             "above_sma200":g.get("above_sma200"),"absolute_momentum_positive":g.get("absolute_momentum_positive"),
             "big_state":big_state,"rotation_category":cat.get("category") if cat else None,
             "rotation_ret20":cat.get("ret20") if cat else None,"rotation_rel20":cat.get("rel20") if cat else None,
-            "rotation_breadth20":cat.get("breadth20") if cat else None,"label":label,
-            "reason":"Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo)"+("; rotazione positiva e ampiezza >=60%" if cat_confirm else "; conferma di rotazione non completa")+("; segnale BIG BUY" if big_buy else "; nessun BUY BIG confermato")
+            "rotation_breadth20":cat.get("breadth20") if cat else None,"label":label,"reason":reason
         })
     # Dedup and keep best per ticker; do not rank non-UCITS/factor groups as country funds.
     seen=set(); recs=[]
@@ -185,6 +237,7 @@ def main():
       "schema_version":1,"generated_utc":now.isoformat(),"generated_local":local.isoformat(),
       "edition":"11:00" if local.hour==11 else ("23:00" if local.hour==23 else "STRAORDINARIA"),
       "market":{"regime":regime,"note":regime_note,"benchmark_return_20":median20,"category_count":len(cats),"positive_relative_categories":len(positive_cats),"top_categories":top_categories},
+      "benchmark":benchmark,
       "flows":{"as_of":flow_asof,"flow_usd":flow_usd,"flow_pct_assets":flow_total.get("flowPctOfStartNetAssets"),"inflows_usd":flow_total.get("inflowsUsd"),"outflows_usd":flow_total.get("outflowsUsd"),"funds_in":flow_total.get("fundsIn"),"funds_out":flow_total.get("fundsOut"),"quality":flow_quality},
       "geography":{"generated_at":ucits.get("generated_at"),"age_days":geo_age,"stale":geo_stale,"latest_price_date":ucits.get("latest_price_date"),"trend_candidates":len(geo_rows),"top":recs},
       "rotation":{"generated":rot.get("generated"),"age_days":rotation_age,"stale":rotation_stale,"latest_bar":rot.get("latest_bar"),"universe":rot.get("universe"),"eligible":rot.get("eligible"),"loaded":rot.get("tickers_loaded"),"candidate_count":(sel.get("riepilogo") or {}).get("candidati"),"exit_count":(sel.get("riepilogo") or {}).get("uscite"),"open_signals":(sel.get("riepilogo") or {}).get("segnalazioni_aperte"),"candidates":ar_candidates,"top_categories":top_categories},
@@ -203,6 +256,12 @@ def main():
     try: hist=json.loads(hist_path.read_text(encoding="utf-8"))
     except Exception: hist={"editions":[]}
     editions=hist.get("editions",[])
+    unique=[]; seen_editions=set()
+    for item in editions:
+        key=(str(item.get("generated_local") or item.get("generated_utc") or "")[:10],item.get("edition"))
+        if key in seen_editions: continue
+        seen_editions.add(key); unique.append(item)
+    editions=unique
     # Aggiorna il rendimento osservato delle raccomandazioni passate usando lo stesso feed UCITS
     # (prezzi rettificati Yahoo, proxy e non NAV ufficiale).
     current_prices={}
@@ -228,8 +287,24 @@ def main():
             if age is not None and age>=30 and "return_1m_pct" not in rec: rec["return_1m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=90 and "return_3m_pct" not in rec: rec["return_3m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=180 and "return_6m_pct" not in rec: rec["return_6m_pct"]=rec["return_since_entry_pct"]
-    editions.append({"generated_utc":report["generated_utc"],"generated_local":report["generated_local"],"edition":report["edition"],"regime":regime,"recommendations":[{"ticker":x["ticker"],"label":x["label"],"price":x.get("price"),"price_date":x.get("price_date"),"reason":x["reason"]} for x in recs],"buy_count":buy_count,"accumulate_count":accum_count})
-    hist={"schema_version":1,"description":"Archivio delle edizioni; prezzi di riferimento, rendimenti osservati e decisioni salvati a ogni aggiornamento. Prezzi rettificati Yahoo: proxy, non NAV ufficiale.","editions":editions[-365:]}
+    if os.getenv("ARCHIVE_EDITION","1")!="0":
+        edition_key=(local.date().isoformat(),report["edition"])
+        existing=[i for i,e in enumerate(editions) if (str(e.get("generated_local") or e.get("generated_utc") or "")[:10],e.get("edition"))==edition_key]
+        new_edition={"generated_utc":report["generated_utc"],"generated_local":report["generated_local"],"edition":report["edition"],"regime":regime,"benchmark":benchmark,"recommendations":[{"ticker":x["ticker"],"label":x["label"],"price":x.get("price"),"price_date":x.get("price_date"),"reason":x["reason"]} for x in recs],"buy_count":buy_count,"accumulate_count":accum_count}
+        if existing: editions[existing[0]]=new_edition
+        else: editions.append(new_edition)
+        old_bench=edition.get("benchmark") or {}
+        old_bench_base=safe_num(old_bench.get("price"))
+        new_bench_price=safe_num(benchmark.get("price"))
+        if old_bench_base and new_bench_price:
+            old_bench["latest_price"]=new_bench_price
+            old_bench["latest_price_date"]=benchmark.get("price_date")
+            old_bench["return_since_entry_pct"]=round((new_bench_price/old_bench_base-1)*100,2)
+            if age is not None and age>=30 and "return_1m_pct" not in old_bench: old_bench["return_1m_pct"]=old_bench["return_since_entry_pct"]
+            if age is not None and age>=90 and "return_3m_pct" not in old_bench: old_bench["return_3m_pct"]=old_bench["return_since_entry_pct"]
+            if age is not None and age>=180 and "return_6m_pct" not in old_bench: old_bench["return_6m_pct"]=old_bench["return_since_entry_pct"]
+            edition["benchmark"]=old_bench
+    hist={"schema_version":1,"description":"Archivio delle edizioni e rendimenti dei consigli rispetto al benchmark globale ACWI.MI; prezzi rettificati Yahoo Finance, proxy e non NAV ufficiale.","editions":editions[-365:]}
     hist_path.write_text(json.dumps(hist,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"generated":report["generated_local"],"sources_ok":sum(1 for x in statuses.values() if x["ok"]),"sources_total":len(statuses),"regime":regime,"buy":buy_count,"accumulate":accum_count,"blockers":blockers},ensure_ascii=False))
 if __name__=="__main__": main()

@@ -169,6 +169,8 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Je
   <div class="ts-group" id="ts-group">
     <div class="ts-item"><div class="ts-dot warn" id="ts-rse-dot"></div><span id="ts-rse">RSE —</span></div>
     <div class="ts-item"><div class="ts-dot warn" id="ts-sig-dot"></div><span id="ts-sig">Signal —</span></div>
+    <div class="ts-item"><div class="ts-dot warn" id="ts-sniper-dot"></div><span id="ts-sniper">SniperChatGPT —</span></div>
+    <div class="ts-item"><div class="ts-dot warn" id="ts-big-dot"></div><span id="ts-big">BigChatGPT —</span></div>
     <div class="ts-item"><div class="ts-dot warn" id="ts-geo-dot"></div><span id="ts-geo">Geo —</span></div>
     <div class="ts-item"><div class="ts-dot warn" id="ts-tem-dot"></div><span id="ts-tem">Tem —</span></div>
     <div class="ts-item"><div class="ts-dot warn" id="ts-set-dot"></div><span id="ts-set">Set —</span></div>
@@ -290,8 +292,8 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Je
 <script>
 const RSE_JSON = 'https://giorgiogoldoni.github.io/RAPTOR_SCENARIO_ENGINE/data/market_data_rse.json';
 const GEO_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/data/bollettino_geografico.json';
-const SNIPER_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json';
-const BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json';
+// Fonte ufficiale: repo sniperchatgpt / reports\nconst SNIPER_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json';
+// Feed generato e pubblicato dal workflow di bigchatgpt\nconst BIG_JSON = 'https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json';
 const TEM_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-tematici/main/tematici.json';
 const SET_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-settoriali/main/settoriali.json';
 const SIG_JSON = 'https://raw.githubusercontent.com/Giorgiogoldoni/raptor-signal/main/data/signal.json';
@@ -440,7 +442,7 @@ function updateTS(id,timeStr,ok=true){
   const dot=document.getElementById(id+'-dot');
   const lbl=document.getElementById(id);
   if(!dot||!lbl)return;
-  const label={'ts-rse':'RSE','ts-geo':'Geo','ts-tem':'Tem','ts-set':'Set'}[id]||id;
+  const label={'ts-rse':'RSE','ts-geo':'Geo','ts-tem':'Tem','ts-set':'Set','ts-sniper':'SniperChatGPT','ts-big':'BigChatGPT'}[id]||id;
   dot.className='ts-dot '+(ok?'ok':'warn');
   lbl.textContent=label+' '+timeStr;
 }
@@ -579,19 +581,21 @@ function renderAutonomous(){
   // SNIPER — signals paper only, not orders
   if(sniperData){
     const sigs=sniperData.signals||[];
+    updateTS('ts-sniper',sniperData.generated_utc||sniperData.generated_at||'OK',true);
     const counts={};sigs.forEach(x=>counts[x.category]=(counts[x.category]||0)+1);
     const top=sigs.slice(0,6);
     html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta">${sniperData.paper_only?'PAPER ONLY':'SOURCE' } · ${sniperData.generated_utc||'—'}</div></div><div class="auto-module-body"><div style="font-weight:700;margin-bottom:5px">${sigs.length} segnali · ${Object.entries(counts).map(([k,v])=>k+': '+v).join(' | ')}</div><div style="font-size:10px;color:var(--orange);margin-bottom:7px">Segnali simulati: non sono ordini o raccomandazioni automatiche.</div>${top.map(x=>`<div class="signal-row"><div><div class="signal-name">${x.symbol}</div><div style="font-size:10px;color:var(--text3)">${x.engine} ${x.variant} · ${x.signal_date}</div></div><span class="signal-pill pill-hold">${x.category}</span></div>`).join('')}<a href="https://giorgiogoldoni.github.io/sniperchatgpt/" target="_blank" rel="noopener">Apri SniperChatGPT ↗</a></div></div>`;
-  } else html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Fonte non disponibile</div></div></div>`;
+  } else { updateTS('ts-sniper','ERR',false); html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-set">🎯 SNIPER CHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Fonte non disponibile</div></div></div>`; }
 
   // BIGCHATGPT feed (published by its Pages workflow)
   if(bigData&&Array.isArray(bigData.righe)){
     const rows=bigData.righe;
+    updateTS('ts-big',bigData.gen||'OK',true);
     const active=rows.filter(x=>['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase()));
     const exits=rows.filter(x=>['ESCI','SELL'].includes(String(x.sta||'').toUpperCase()));
     const newest=rows.slice().sort((a,b)=>String(b.u||'').localeCompare(String(a.u||''))).slice(0,5);
     html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta">Generato ${bigData.gen||'—'}</div></div><div class="auto-module-body"><div style="font-weight:700;margin-bottom:7px">${rows.length} ETF in universo · ${active.length} TIENI/HOLD · ${exits.length} ESCI</div>${newest.map(x=>`<div class="signal-row"><div><div class="signal-name">${x.t}</div><div style="font-size:10px;color:var(--text3)">${x.n||''} · ${x.u||'—'}</div></div><span class="signal-pill ${['TIENI','BUY','HOLD'].includes(String(x.sta||'').toUpperCase())?'pill-buy':'pill-hold'}">${x.sta||'N/D'}</span></div>`).join('')}<a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`;
-  } else html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Feed non disponibile</div></div><div class="auto-module-body">Il feed JSON di BIG non è raggiungibile. Nessun segnale viene inventato. <a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`;
+  } else { updateTS('ts-big','ERR',false); html+=`<div class="auto-module"><div class="auto-module-head"><div class="auto-module-title"><span class="badge-source badge-tem">📈 BIGCHATGPT</span></div><div class="auto-module-meta" style="color:var(--bear)">Feed non disponibile</div></div><div class="auto-module-body">Il feed JSON di BIG non è raggiungibile. Nessun segnale viene inventato. <a href="https://giorgiogoldoni.github.io/BIGCHATGPT/" target="_blank" rel="noopener">Apri BIGCHATGPT ↗</a></div></div>`; }
 
   // TEMATICI
   if(temData){

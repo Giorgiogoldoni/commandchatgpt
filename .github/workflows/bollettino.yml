@@ -1,0 +1,66 @@
+name: Bollettino CommandChatGPT
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/**'
+      - '.github/workflows/bollettino.yml'
+  schedule:
+    # GitHub usa UTC. Le quattro finestre consentono di mantenere le 11 e le 23 italiane
+    # sia in ora solare sia in ora legale; il controllo locale evita doppie edizioni.
+    - cron: '0 9 * * *'
+    - cron: '0 10 * * *'
+    - cron: '0 21 * * *'
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: commandchatgpt-bollettino
+  cancel-in-progress: false
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verifica finestra oraria italiana
+        if: github.event_name == 'schedule'
+        run: |
+          HOUR=$(TZ=Europe/Rome date +%H)
+          if [ "$HOUR" != "11" ] && [ "$HOUR" != "23" ]; then
+            echo "Fuori dalla finestra italiana prevista: ora locale $HOUR. Nessuna edizione generata."
+            exit 0
+          fi
+      - name: Genera bollettino e storico
+        if: github.event_name != 'schedule' || (steps.check.outputs.run == 'true')
+        run: python scripts/generate_bollettino.py
+      - name: Salva bollettino e archivio
+        if: github.event_name != 'schedule' || (steps.check.outputs.run == 'true')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/bollettino.json data/bollettino_storico.json
+          if git diff --cached --quiet; then echo "Nessuna variazione da salvare"; exit 0; fi
+          git commit -m "Aggiorna bollettino CommandChatGPT"
+          git push
+      - name: Configura GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Prepara sito
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Pubblica bollettino
+        id: deployment
+        uses: actions/deploy-pages@v4

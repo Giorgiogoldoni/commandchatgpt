@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-11-27T18:50:42.964603+00:00",
-  "generated_local": "2026-11-27T19:50:42.964603+01:00",
+  "generated_utc": "2026-11-27T18:51:18.055662+00:00",
+  "generated_local": "2026-11-27T19:51:18.055662+01:00",
   "edition": "23:00",
   "market": {
     "regime": "PRUDENZA SELETTIVA",
@@ -532,7 +532,7 @@
     "generated": "2026-11-26T10:32:09.371381+00:00",
     "paper_only": true,
     "signal_count": 126,
-    "age_days": 1.3462382308564815,
+    "age_days": 1.3466329391319445,
     "rrg_generated": "2026-11-27T16:09:22.388506+00:00",
     "rrg_instruments": 284,
     "rrg_fetch_ok": 284,
@@ -542,7 +542,7 @@
     "as_of": "2026-11-13",
     "status": "partial",
     "stale": true,
-    "age_days": 14.785235585196759,
+    "age_days": 14.785630293344907,
     "instrument_count": 29,
     "watchlist_count": 5,
     "portfolio_positions": 18,

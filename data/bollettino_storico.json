@@ -95,6 +95,100 @@
       ],
       "buy_count": 0,
       "accumulate_count": 1
+    },
+    {
+      "generated_utc": "2026-11-27T18:51:18.055662+00:00",
+      "generated_local": "2026-11-27T19:51:18.055662+01:00",
+      "edition": "23:00",
+      "regime": "PRUDENZA SELETTIVA",
+      "recommendations": [
+        {
+          "ticker": "FLXI.MI",
+          "label": "ACCUMULO",
+          "price": 39.974998474121094,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); rotazione positiva e ampiezza >=60%; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "XSMI.MI",
+          "label": "WATCHLIST",
+          "price": 167.55999755859375,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "XDEB.DE",
+          "label": "WATCHLIST",
+          "price": 48.97999954223633,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "SVE.MI",
+          "label": "WATCHLIST",
+          "price": 21.575000762939453,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "IBCJ.DE",
+          "label": "WATCHLIST",
+          "price": 35.28499984741211,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "GRC",
+          "label": "WATCHLIST",
+          "price": 2.86299991607666,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "SP1E.MI",
+          "label": "WATCHLIST",
+          "price": 10.842000007629395,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "IMIB.MI",
+          "label": "WATCHLIST",
+          "price": 29.8700008392334,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "EST.MI",
+          "label": "WATCHLIST",
+          "price": 45.435001373291016,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "XESD.DE",
+          "label": "WATCHLIST",
+          "price": 45.15999984741211,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "D5BI.DE",
+          "label": "WATCHLIST",
+          "price": 8.065999984741211,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        },
+        {
+          "ticker": "IAEX.AS",
+          "label": "WATCHLIST",
+          "price": 109.80000305175781,
+          "price_date": "2026-11-27",
+          "reason": "Trend geografico confermato (prezzo sopra SMA200 e momentum 12m positivo); conferma di rotazione non completa; nessun BUY BIG confermato"
+        }
+      ],
+      "buy_count": 0,
+      "accumulate_count": 1
     }
   ]
 }

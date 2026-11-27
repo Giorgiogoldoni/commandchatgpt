@@ -36,15 +36,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Verifica finestra oraria italiana
+        id: schedule_guard
         if: github.event_name == 'schedule'
         run: |
           HOUR=$(TZ=Europe/Rome date +%H)
-          if [ "$HOUR" != "11" ] && [ "$HOUR" != "23" ]; then
+          if [ "$HOUR" = "11" ] || [ "$HOUR" = "23" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Edizione prevista: ora locale $HOUR"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
             echo "Fuori dalla finestra italiana prevista: ora locale $HOUR. Nessuna edizione generata."
-            exit 0
           fi
       - name: Genera bollettino e storico
-        if: github.event_name != 'schedule' || (steps.check.outputs.run == 'true')
+        if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')
         run: python scripts/generate_bollettino.py
       - name: Salva bollettino e archivio
         if: github.event_name != 'schedule' || (steps.check.outputs.run == 'true')

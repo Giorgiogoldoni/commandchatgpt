@@ -1,127 +1,133 @@
 <!doctype html>
-<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CommandChatGPT · Centro di comando</title>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CommandChatGPT · Bollettino operativo</title>
+<meta name="description" content="Bollettino quantitativo giornaliero: quadro mercati, rotazione, geografia ETF e opportunità operative.">
 <style>
-:root{--bg:#f4f6fa;--card:#fff;--ink:#172033;--muted:#667085;--line:#e4e8f0;--blue:#2457a7;--green:#16845b;--red:#c43d4d;--amber:#a96808}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{background:#14233d;color:#fff;padding:22px max(16px,calc((100vw - 1180px)/2));}
-h1{font-size:23px;margin:0 0 5px}header p{margin:0;color:#cbd5e1;font-size:12px}
-main{max-width:1180px;margin:18px auto;padding:0 14px 40px}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-button{border:0;background:var(--blue);color:#fff;padding:10px 15px;border-radius:8px;font-weight:700;cursor:pointer}
-#updated{font-size:11px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px;min-width:0;box-shadow:0 2px 8px #1c2b4510}
-.card.wide{grid-column:1/-1}.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
-h2{font-size:16px;margin:0}.sub{color:var(--muted);font-size:11px;margin-top:3px}
-.status{font-size:10px;font-weight:800;border-radius:20px;padding:4px 8px;background:#eef1f6;color:#5d6878;white-space:nowrap}
-.status.ok{background:#e5f5ee;color:var(--green)}.status.warn{background:#fff3dd;color:var(--amber)}.status.err{background:#fdebed;color:var(--red)}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
-.metric{background:#f7f8fb;border-radius:8px;padding:9px;min-width:0}.metric b{display:block;font-size:19px;overflow-wrap:anywhere}.metric span{display:block;color:var(--muted);font-size:10px}
-ul.rows{list-style:none;padding:0;margin:8px 0 0}ul.rows li{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:8px 0;font-size:12px}
-.val{font-weight:750;text-align:right;white-space:nowrap}.muted{color:var(--muted)}.note{font-size:11px;color:var(--muted);margin-top:10px}
-a{color:var(--blue);text-decoration:none;font-weight:650}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:11px}
-.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:11px}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--muted);font-size:10px}
-.empty{padding:12px;background:#f8f9fb;border-radius:8px;color:var(--muted);font-size:12px}
-footer{color:var(--muted);font-size:10px;text-align:center;margin-top:18px}
-@media(max-width:720px){.grid{grid-template-columns:1fr}.card.wide{grid-column:auto}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.metric b{font-size:16px}header{padding:18px 16px}h1{font-size:20px}}
+:root{--bg:#f3f5f9;--paper:#fff;--ink:#17243a;--muted:#66748a;--line:#e2e7ef;--navy:#132541;--blue:#2457a7;--green:#16784f;--red:#b83a48;--amber:#9a650e;--shadow:0 6px 24px #17243a0b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:linear-gradient(120deg,#10213b,#1c3e68);color:#fff;padding:26px max(16px,calc((100vw - 1120px)/2))}
+header .eyebrow{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#b9c9df;font-weight:800}
+h1{font-size:clamp(23px,4vw,34px);line-height:1.12;margin:7px 0}.subtitle{color:#d2dced;margin:0;font-size:13px}
+main{max-width:1120px;margin:20px auto;padding:0 14px 46px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;color:var(--muted);font-size:12px}
+button{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:750;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:var(--shadow);min-width:0}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-6{grid-column:span 6}.span-5{grid-column:span 5}.span-4{grid-column:span 4}
+h2{font-size:16px;margin:0 0 4px}.hint{font-size:11px;color:var(--muted);margin:0 0 12px}
+.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.regime{font-size:22px;font-weight:850;letter-spacing:-.4px;margin:2px 0 7px}
+.regime-note{max-width:720px;color:#4e5e73;font-size:13px}
+.edition{text-align:right;white-space:nowrap;color:var(--muted);font-size:11px}
+.pill{display:inline-block;border-radius:30px;padding:4px 9px;font-size:10px;font-weight:850;letter-spacing:.3px;background:#edf1f6;color:#566276}
+.pill.ok{background:#e5f4ec;color:var(--green)}.pill.warn{background:#fff3dc;color:var(--amber)}.pill.bad{background:#fcebed;color:var(--red)}.pill.blue{background:#e9f0fc;color:var(--blue)}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:16px}
+.metric{padding:10px;background:#f6f8fb;border-radius:9px;min-width:0}.metric b{display:block;font-size:18px;overflow-wrap:anywhere}.metric span{display:block;color:var(--muted);font-size:10px}
+.recommendations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rec{border:1px solid var(--line);border-radius:11px;padding:12px;min-width:0}
+.rec-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.ticker{font-size:16px;font-weight:850}.rec-name{font-size:11px;color:var(--muted);margin:3px 0 8px;min-height:30px}
+.rec-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;color:var(--muted)}
+.reason{font-size:11px;color:#425169;margin-top:8px}
+ul.clean{list-style:none;padding:0;margin:0}ul.clean li{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:9px 0;font-size:12px}ul.clean li:first-child{border-top:0}
+.right{text-align:right;white-space:nowrap;font-weight:750}.muted{color:var(--muted);font-weight:450}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:11px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+.status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.source{padding:9px;border:1px solid var(--line);border-radius:9px;font-size:11px;display:flex;justify-content:space-between;gap:8px}
+.warning{background:#fff8e9;border:1px solid #f1dfb8;border-radius:10px;padding:11px 13px;color:#77500f;font-size:12px;margin-top:10px}
+.good{background:#edf7f1;border:1px solid #d4eadc;border-radius:10px;padding:11px 13px;color:#176343;font-size:12px;margin-top:10px}
+.small{font-size:10px;color:var(--muted)}a{color:var(--blue);text-decoration:none;font-weight:700}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:10px}
+footer{text-align:center;color:var(--muted);font-size:10px;margin-top:18px}
+@media(max-width:760px){.span-8,.span-7,.span-6,.span-5,.span-4{grid-column:span 12}.hero{display:block}.edition{text-align:left;margin-top:8px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.recommendations{grid-template-columns:1fr}.status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style></head>
-<body><header><h1>CommandChatGPT</h1><p>Centro di comando · cinque repository ufficiali · dati con provenienza e data esplicite</p></header>
-<main><div class="toolbar"><div id="updated">Connessione alle cinque fonti…</div><button id="refresh" onclick="loadAll()">↻ Aggiorna dati</button></div>
+<body>
+<header><div class="eyebrow">Centro decisionale · edizione quantitativa</div><h1>CommandChatGPT</h1><p class="subtitle">Il bollettino operativo: scenario, rotazioni, geografia e opportunità ETF.</p></header>
+<main>
+<div class="toolbar"><div id="stamp">Lettura dell'ultima edizione…</div><button id="refresh" onclick="loadReport()">↻ Aggiorna bollettino</button></div>
 <div class="grid">
-<section class="card" id="arrotation"><div class="head"><div><h2>ARRotation</h2><div class="sub">Rotazione, selezione e flussi ETFIQ</div></div><span class="status">Caricamento</span></div><div class="empty">Lettura dati…</div></section>
-<section class="card" id="big"><div class="head"><div><h2>BIGChatGPT</h2><div class="sub">Universo ETF e segnali tecnici</div></div><span class="status">Caricamento</span></div><div class="empty">Lettura dati…</div></section>
-<section class="card wide" id="geo"><div class="head"><div><h2>GeografiaChatGPT</h2><div class="sub">Ranking geografici e momentum UCITS</div></div><span class="status">Caricamento</span></div><div class="empty">Lettura dati…</div></section>
-<section class="card" id="sniper"><div class="head"><div><h2>SniperChatGPT</h2><div class="sub">Segnali e radar · modalità paper</div></div><span class="status">Caricamento</span></div><div class="empty">Lettura dati…</div></section>
-<section class="card" id="tax"><div class="head"><div><h2>TAX · ETP Manager</h2><div class="sub">Strumenti, strategia e dati di mercato</div></div><span class="status">Caricamento</span></div><div class="empty">Lettura dati…</div></section>
-</div><footer>Le sezioni non sommano score eterogenei. Dati mancanti o obsoleti sono segnalati, mai sostituiti con valori stimati. Informazioni di supporto, non ordini automatici.</footer></main>
+<section class="card span-12" id="market">
+<div class="hero"><div><div class="hint">01 · REGIME DI MERCATO</div><div class="regime" id="regime">—</div><div class="regime-note" id="regime-note">—</div></div><div class="edition" id="edition">—</div></div>
+<div class="metrics" id="market-metrics"></div>
+</section>
+<section class="card span-12" id="buy">
+<h2>02 · Decisioni operative</h2><p class="hint">Le raccomandazioni richiedono conferme incrociate. Nessun segnale isolato viene trasformato in acquisto.</p>
+<div id="recommendations" class="recommendations"><div class="small">Caricamento…</div></div><div id="blockers"></div>
+</section>
+<section class="card span-7">
+<h2>03 · Rotazione settoriale e tematica</h2><p class="hint">Rendimenti mediani e forza relativa: sono proxy di rotazione, non flussi monetari.</p>
+<div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Gruppo</th><th>20 sedute</th><th>RS 20</th><th>Ampiezza</th><th>Stato</th></tr></thead><tbody id="categories"></tbody></table></div>
+</section>
+<section class="card span-5">
+<h2>04 · Flussi ETF effettivi</h2><p class="hint">Fonte ETFIQ · sottoscrizioni e rimborsi aggregati</p><div id="flows"></div>
+</section>
+<section class="card span-6">
+<h2>05 · Geografia</h2><p class="hint">Filtro trend: prezzo sopra SMA200 e momentum a 12 mesi positivo.</p><div id="geography"></div>
+<div class="links"><a href="https://giorgiogoldoni.github.io/geografiachatgpt/">Apri GeografiaChatGPT ↗</a></div>
+</section>
+<section class="card span-6">
+<h2>06 · Segnali quantitativi</h2><p class="hint">BIG fornisce i segnali tecnici; ARRotation filtra le candidature e le uscite.</p><div id="quant"></div>
+<div class="links"><a href="https://giorgiogoldoni.github.io/BIGCHATGPT/">Apri BIGCHATGPT ↗</a><a href="https://giorgiogoldoni.github.io/arrotation/">Apri ARRotation ↗</a></div>
+</section>
+<section class="card span-6">
+<h2>07 · Sniper e RRG</h2><p class="hint">Monitoraggio tattico, non utilizzato come ordine operativo.</p><div id="sniper"></div>
+<div class="links"><a href="https://giorgiogoldoni.github.io/sniperchatgpt/">Apri SniperChatGPT ↗</a></div>
+</section>
+<section class="card span-6">
+<h2>08 · Portafoglio e strategia TAX</h2><p class="hint">Controllo di qualità del dato prima di formulare indicazioni sul portafoglio.</p><div id="tax"></div>
+<div class="links"><a href="https://giorgiogoldoni.github.io/TAX-ETP-MANAGER/">Apri TAX ETP Manager ↗</a></div>
+</section>
+<section class="card span-12">
+<h2>09 · Affidabilità delle fonti</h2><p class="hint">Un feed non aggiornato riduce l'affidabilità del bollettino e può bloccare i BUY.</p><div class="status-grid" id="sources"></div>
+<div class="links"><a href="./data/bollettino_storico.json">Apri archivio delle edizioni ↗</a></div>
+</section>
+</div>
+<footer id="disclaimer">Le informazioni sono di supporto alle decisioni e non costituiscono consulenza personalizzata né ordini automatici.</footer>
+</main>
 <script>
-const BASE={
- ar:'https://raw.githubusercontent.com/Giorgiogoldoni/arrotation/main/data/',
- big:'https://giorgiogoldoni.github.io/BIGCHATGPT/data/',
- geo:'https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/',
- sniper:'https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/',
- tax:'https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/'
-};
-const urls={
- rotation:BASE.ar+'rotation.json',flows:BASE.ar+'flows.json',selection:BASE.ar+'selezione.json',
- big:BASE.big+'index.json',
- geo:BASE.geo+'geografia-motore.json',geoUcits:BASE.geo+'ucits_geography.json',
- sniper:BASE.sniper+'current_signals.json',sniperRrg:BASE.sniper+'sniper_rrg_summary.json',
- taxSnapshot:BASE.tax+'market_snapshot.json',taxStrategy:BASE.tax+'strategy.json',taxInstruments:BASE.tax+'instruments.json',taxWatch:BASE.tax+'watchlist.json',taxPortfolio:BASE.tax+'portfolio.json'
-};
-const $=id=>document.getElementById(id), num=(x,d=1)=>x!==null&&x!==undefined&&x!==''&&Number.isFinite(Number(x))?Number(x).toFixed(d):'—';
-const dateText=x=>x?String(x).replace('T',' ').replace('Z',' UTC'):'data non datata';
-async function get(url){const r=await fetch(url+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
-function age(date){if(!date)return null;const t=Date.parse(date);return Number.isFinite(t)?(Date.now()-t)/86400000:null}
-function badge(id,state,label){const b=$(id).querySelector('.status');b.className='status '+state;b.textContent=label}
-function setCard(id,state,label,body){badge(id,state,label);$(id).querySelector('.empty')?.remove();const old=$(id).querySelector('.body');if(old)old.remove();const d=document.createElement('div');d.className='body';d.innerHTML=body;$(id).append(d)}
-function metric(v,l){return '<div class="metric"><b>'+v+'</b><span>'+l+'</span></div>'}
-function link(url,label){return '<a href="'+url+'" target="_blank" rel="noopener">'+label+' ↗</a>'}
-async function loadAr(){
- const [r,f,s]=await Promise.all([get(urls.rotation),get(urls.flows),get(urls.selection)]);
- const stale=age(r.generated)>2||age(r.latest_bar)>4;
- const cats=(r.categories||[]).slice().sort((a,b)=>(b.score??-999)-(a.score??-999)).slice(0,6);
- const top=cats.map(x=>'<li><span><b>'+x.category+'</b><br><span class="muted">'+x.group+' · '+x.n+' ETF · '+(x.status||'')+'</span></span><span class="val">20g '+num(x.ret20)+'%<br><span class="muted">RS '+num(x.rel20)+'%</span></span></li>').join('');
- const flow=f.total||{},sum=s.riepilogo||{};
- setCard('arrotation',stale?'warn':'ok',stale?'DATI DA VERIFICARE':'AGGIORNATO',
- '<div class="metrics">'+metric(num(r.universe,0),'ETF universo')+metric(num(r.eligible,0),'ETF eleggibili')+metric(num(flow.flowUsd/1e9,2)+' mld $','Flussi ETFIQ 1D')+'</div>'+
- '<div class="sub">Generato '+dateText(r.generated)+' · ultima barra '+(r.latest_bar||'—')+' · flussi as-of '+(f.asOf||'—')+'</div><ul class="rows">'+(top||'<li>Nessuna categoria disponibile</li>')+'</ul>'+
- '<div class="note">Candidati: '+(sum.candidati??'—')+' · Uscite: '+(sum.uscite??'—')+'. La rotazione per categorie è una proxy basata sui rendimenti, non flussi monetari effettivi. ETFIQ misura i flussi separatamente.</div>'+
- '<div class="links">'+link('https://giorgiogoldoni.github.io/arrotation/','Apri ARRotation')+'</div>');
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const n=(v,d=2)=>v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d);
+const pct=(v,d=1)=>v===null||v===undefined?"—":n(Number(v)*((Math.abs(Number(v))<=1)?100:1),d)+"%";
+const money=v=>v===null||v===undefined?"—":(Number(v)/1e9).toLocaleString("it-IT",{maximumFractionDigits:2})+" mld $";
+function pill(label,kind=""){return '<span class="pill '+kind+'">'+esc(label)+'</span>'}
+function renderRecommendations(r){
+ const arr=r.recommendations||[];
+ if(!arr.length)return '<div class="warning">Nessun acquisto confermato. I motori non hanno prodotto una convergenza sufficiente oppure manca una fonte necessaria.</div>';
+ return arr.slice(0,8).map(x=>{
+  const kind=x.label==="BUY"?"ok":x.label==="ACCUMULO"?"blue":x.label==="ATTESA"?"bad":"warn";
+  return '<article class="rec"><div class="rec-top"><span class="ticker">'+esc(x.ticker)+'</span>'+pill(x.label,kind)+'</div><div class="rec-name">'+esc(x.name)+'</div><div class="rec-meta"><span>'+esc(x.geography||"Area non classificata")+'</span><span>Momentum '+pct(x.composite_momentum)+'</span><span>SMA200 '+(x.above_sma200?"sopra":"—")+'</span></div><div class="reason">'+esc(x.reason)+'</div>'+(x.isin?'<div class="small">ISIN '+esc(x.isin)+'</div>':'')+'</article>';
+ }).join("");
 }
-async function loadBig(){
- const d=await get(urls.big),rows=d.righe||[],states={},stateOf=x=>String(Array.isArray(x.sta)?(x.sta[0]||'N/D'):(x.sta||'N/D')).toUpperCase();rows.forEach(x=>{const k=stateOf(x);states[k]=(states[k]||0)+1});
- const fresh=age(d.gen)<2,sorted=rows.slice().sort((a,b)=>(Number(b.v)||0)-(Number(a.v)||0)).slice(0,8);
- setCard('big',fresh?'ok':'warn',fresh?'AGGIORNATO':'DATA DA VERIFICARE',
- '<div class="metrics">'+metric(rows.length,'ETF con dati')+metric(states.BUY||0,'BUY')+metric(states.ESCI||0,'ESCI')+'</div>'+
- '<div class="sub">Generato '+dateText(d.gen)+' · '+(d.sistemi||[]).length+' sistemi tecnici</div><ul class="rows">'+sorted.map(x=>'<li><span><b>'+x.t+'</b><br><span class="muted">'+(x.n||'')+'</span></span><span class="val">'+stateOf(x)+'<br><span class="muted">'+num(x.v,2)+'%</span></span></li>').join('')+'</ul>'+
- '<div class="links">'+link('https://giorgiogoldoni.github.io/BIGCHATGPT/','Apri BIGChatGPT')+'</div>');
+async function loadReport(){
+ $("refresh").disabled=true;$("refresh").textContent="Lettura…";
+ try{
+  const res=await fetch("./data/bollettino.json?v="+Date.now(),{cache:"no-store"});
+  if(!res.ok)throw Error("Bollettino non ancora pubblicato ("+res.status+")");
+  const r=await res.json(),m=r.market||{},f=r.flows||{},g=r.geography||{},a=r.rotation||{},b=r.big||{},s=r.sniper||{},t=r.tax||{};
+  $("stamp").textContent="Ultimo aggiornamento: "+new Date(r.generated_local||r.generated_utc).toLocaleString("it-IT");
+  $("regime").textContent=m.regime||"SCENARIO NON DISPONIBILE";
+  $("regime-note").textContent=m.note||"";
+  $("edition").innerHTML=pill("EDIZIONE "+esc(r.edition||"—"),"blue")+"<div style='margin-top:7px'>Mercato al "+esc(a.latest_bar||g.latest_price_date||"—")+"</div>";
+  $("market-metrics").innerHTML=[
+   [n(m.benchmark_return_20,2)+"%","Benchmark mediano · 20 sedute"],
+   [n(m.positive_relative_categories,0)+" / "+n(m.category_count,0),"Categorie con forza relativa positiva"],
+   [n(a.loaded,0),"ETF caricati in ARRotation"],
+   [n(r.buy_count,0)+" BUY · "+n(r.accumulate_count,0)+" ACCUMULO","Conferme operative"]
+  ].map(x=>'<div class="metric"><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></div>').join("");
+  $("recommendations").innerHTML=renderRecommendations(r);
+  $("blockers").innerHTML=(r.blockers||[]).map(x=>'<div class="warning">'+esc(x)+'</div>').join("");
+  $("categories").innerHTML=(m.top_categories||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.category)+'</b></td><td>'+esc(x.group)+'</td><td>'+n(x.ret20,2)+'%</td><td>'+n(x.rel20,2)+'%</td><td>'+n(x.breadth20,0)+'%</td><td>'+esc(x.status)+'</td></tr>').join("")||'<tr><td colspan="6">Dati non disponibili</td></tr>';
+  $("flows").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+money(f.flow_usd)+'</b><span>Flussi netti aggregati</span></div><div class="metric"><b>'+n(f.flow_pct_assets,2)+'%</b><span>Flussi / patrimonio iniziale</span></div><div class="metric"><b>'+money(f.inflows_usd)+'</b><span>Afflussi</span></div><div class="metric"><b>'+money(f.outflows_usd)+'</b><span>Deflussi</span></div></div><p class="small">As of '+esc(f.as_of||"—")+' · '+esc(f.quality||"")+'. Flussi non equivalgono a performance dei prezzi.</p>';
+  $("geography").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n(g.trend_candidates,0)+'</b><span>Strumenti con trend confermato</span></div><div class="metric"><b>'+esc(g.latest_price_date||"—")+'</b><span>Ultima seduta prezzi</span></div></div><ul class="clean">'+(g.top||[]).slice(0,5).map(x=>'<li><span><b>'+esc(x.ticker)+'</b><br><span class="muted">'+esc(x.geography||x.name)+'</span></span><span class="right">'+pct(x.composite_momentum)+'<br><span class="muted">momentum composito</span></span></li>').join("")+'</ul>';
+  $("quant").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n(b.rows,0)+'</b><span>ETF con dati BIG</span></div><div class="metric"><b>'+n(b.systems,0)+'</b><span>Sistemi tecnici</span></div><div class="metric"><b>'+n(a.candidate_count,0)+'</b><span>Candidati ARRotation</span></div><div class="metric"><b>'+n(a.exit_count,0)+'</b><span>Uscite rilevate</span></div></div><ul class="clean">'+(a.candidates||[]).map(x=>'<li><span><b>'+esc(x.ticker)+'</b><br><span class="muted">'+esc(x.name)+'</span></span><span class="right">'+pill(x.state,x.state==="BUY"?"ok":"warn")+'<br><span class="muted">'+esc(x.system)+'</span></span></li>').join("")+'</ul>';
+  $("sniper").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n(s.signal_count,0)+'</b><span>Segnali paper</span></div><div class="metric"><b>'+n(s.rrg_instruments,0)+'</b><span>Strumenti RRG</span></div><div class="metric"><b>'+n(s.rrg_fetch_ok,0)+' / '+n(s.rrg_fetch_total,0)+'</b><span>Serie RRG disponibili</span></div><div class="metric"><b>'+esc(s.generated||"—").slice(0,10)+'</b><span>Data segnali</span></div></div><div class="warning">PAPER ONLY: segnali simulati, non ordini reali. Esclusi dal calcolo dei BUY.</div>';
+  $("tax").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n(t.instrument_count,0)+'</b><span>Strumenti censiti</span></div><div class="metric"><b>'+n(t.portfolio_positions,0)+'</b><span>Posizioni registrate</span></div><div class="metric"><b>'+n(t.watchlist_count,0)+'</b><span>Watchlist</span></div><div class="metric"><b>'+esc(t.as_of||"—")+'</b><span>Data snapshot prezzi</span></div></div><div class="warning">Snapshot '+(t.stale?"obsoleto":"recente")+'. Strategia '+esc(t.strategy||"—")+' · ROC '+esc(t.roc||"—")+' · MA '+esc(t.ma_fast||"—")+'/'+esc(t.ma_slow||"—")+'. Nessun segnale sul portafoglio senza storico prezzi aggiornato.</div>';
+  const src=r.sources||{};
+  $("sources").innerHTML=Object.entries(src).map(([name,v])=>'<div class="source"><span>'+esc(name)+'</span>'+pill(v.ok?"OK":"ERRORE",v.ok?"ok":"bad")+'</div>').join("");
+  $("disclaimer").textContent=r.disclaimer||"Informazioni di supporto, non ordini automatici.";
+ }catch(e){$("stamp").textContent=e.message;$("recommendations").innerHTML='<div class="warning">Il bollettino non è ancora disponibile. Usa di nuovo Aggiorna dopo il completamento del primo workflow.</div>';}
+ finally{$("refresh").disabled=false;$("refresh").textContent="↻ Aggiorna bollettino";}
 }
-async function loadGeo(){
- const [d,u]=await Promise.all([get(urls.geo),get(urls.geoUcits)]);
- const groups=d.rankings||{},all=Object.entries(groups).flatMap(([k,v])=>(Array.isArray(v)?v:[]).map(x=>({...x,_group:k})));
- const good=all.filter(x=>x.eligible_trend===true||x.above_sma200===true).sort((a,b)=>(b.composite_momentum??-999)-(a.composite_momentum??-999)).slice(0,10);
- const fresh=age(d.latest_price_date)<2;
- const list=good.map(x=>'<li><span><b>'+(x.ticker||x.symbol||'—')+'</b><br><span class="muted">'+(x.name||x.geography||x.country||x._group)+'</span></span><span class="val">'+num((x.composite_momentum??x.momentum_12m)*100,1)+'%<br><span class="muted">'+(x.eligible_trend?'TREND OK':x.above_sma200?'SMA200 ↑':'')+'</span></span></li>').join('');
- const ranks=u.rankings||{},countryCount=Object.values(ranks).reduce((n,a)=>n+(Array.isArray(a)?a.length:0),0);
- setCard('geo',fresh?'ok':'warn',fresh?'AGGIORNATO':'DATA DA VERIFICARE',
- '<div class="metrics">'+metric(Object.keys(groups).length,'moduli geografici')+metric(all.length,'righe ranking')+metric(countryCount,'righe UCITS Paesi')+'</div>'+
- '<div class="sub">Motore aggiornato '+dateText(d.generated_at)+' · ultima seduta '+(d.latest_price_date||'—')+'</div><ul class="rows">'+(list||'<li>Nessun candidato con filtro trend positivo</li>')+'</ul>'+
- '<div class="note">Ranking distinti per modulo e tipologia. I punteggi non sono sommati tra motori diversi; verificare lo stato di eleggibilità e la qualità dello strumento.</div>'+
- '<div class="links">'+link('https://giorgiogoldoni.github.io/geografiachatgpt/','Apri GeografiaChatGPT')+' '+link('https://giorgiogoldoni.github.io/geografiachatgpt/geografia-motore.html','Motore geografico')+'</div>');
-}
-async function loadSniper(){
- const [d,r]=await Promise.all([get(urls.sniper),get(urls.sniperRrg)]);
- const sig=d.signals||[],counts={};sig.forEach(x=>counts[x.category]=(counts[x.category]||0)+1);
- const latest=sig.slice().sort((a,b)=>String(b.signal_date).localeCompare(String(a.signal_date))).slice(0,8);
- const fresh=age(d.generated_utc)<2;
- setCard('sniper',fresh?'warn':'warn',d.paper_only?'PAPER ONLY':'VERIFICARE',
- '<div class="metrics">'+metric(sig.length,'segnali pubblicati')+metric(r.instruments||0,'strumenti radar RRG')+metric(r.fetch_status?.ok||0,'serie disponibili')+'</div>'+
- '<div class="sub">Generato '+dateText(d.generated_utc)+' · '+Object.entries(counts).map(([k,v])=>k+': '+v).join(' · ')+'</div><ul class="rows">'+latest.map(x=>'<li><span><b>'+x.symbol+'</b><br><span class="muted">'+x.engine+' '+x.variant+' · '+x.signal_date+'</span></span><span class="val">'+x.category+'</span></li>').join('')+'</ul>'+
- '<div class="note">Modalità PAPER ONLY: segnali simulati, non ordini né raccomandazioni operative. La data dei segnali va controllata prima di qualsiasi utilizzo.</div>'+
- '<div class="links">'+link('https://giorgiogoldoni.github.io/sniperchatgpt/','Apri SniperChatGPT')+'</div>');
-}
-async function loadTax(){
- const [m,s,i,w,p]=await Promise.all([get(urls.taxSnapshot),get(urls.taxStrategy),get(urls.taxInstruments),get(urls.taxWatch),get(urls.taxPortfolio)]);
- const stale=age(m.as_of)>7,positions=p.positions||[],watch=w.tickers||[];
- const indicators=Object.entries(s.parameters?.weights||{}).map(([k,v])=>k+' '+v).join(' · ');
- setCard('tax',stale?'warn':'ok',stale?'SNAPSHOT OBSOLETO':'SNAPSHOT RECENTE',
- '<div class="metrics">'+metric((i.instruments||[]).length,'strumenti censiti')+metric(positions.length,'posizioni in archivio')+metric(watch.length,'watchlist')+'</div>'+
- '<div class="sub">Snapshot prezzi al '+(m.as_of||'—')+' · stato '+(m.status||'—')+' · valuta '+(m.currency||'—')+'</div>'+
- '<div class="note">Modello '+(s.model_name||'TAX')+' · ROC '+(s.parameters?.roc_period??'—')+' · MA '+(s.parameters?.moving_average_fast??'—')+'/'+(s.parameters?.moving_average_slow??'—')+' · pesi: '+indicators+'.</div>'+
- '<ul class="rows">'+positions.slice(0,6).map(x=>'<li><span><b>'+x.ticker+'</b><br><span class="muted">'+(x.raw_name||x.instrument_type||'')+'</span></span><span class="val">'+num(x.quantity,0)+' unità</span></li>').join('')+'</ul>'+
- '<div class="note">Attenzione: il file storico quantitativo TAX non contiene ancora serie pubblicate; non mostro score o segnali calcolati senza storico valido. Snapshot prezzi non aggiornato al giorno corrente.</div>'+
- '<div class="links">'+link('https://giorgiogoldoni.github.io/TAX-ETP-MANAGER/','Apri TAX ETP Manager')+'</div>');
-}
-async function loadAll(){
- $('refresh').disabled=true;$('refresh').textContent='Aggiornamento…';
- const tasks=[['arrotation',loadAr],['big',loadBig],['geo',loadGeo],['sniper',loadSniper],['tax',loadTax]];
- const results=await Promise.allSettled(tasks.map(x=>x[1]()));
- const failures=[];
- results.forEach((r,i)=>{if(r.status==='rejected'){const id=tasks[i][0];failures.push(id+': '+r.reason.message);setCard(id,'err','ERRORE','<div class="empty">Feed non leggibile: '+String(r.reason.message).replace(/[<>&]/g,'')+'. Nessun dato sostitutivo viene mostrato.</div>')}});
- $('updated').textContent='Ultimo controllo: '+new Date().toLocaleString('it-IT')+(failures.length?' · errori: '+failures.join(' | '):' · cinque repository interrogati');
- $('refresh').disabled=false;$('refresh').textContent='↻ Aggiorna dati';
-}
-loadAll();setInterval(loadAll,30*60*1000);
+loadReport();
 </script></body></html>

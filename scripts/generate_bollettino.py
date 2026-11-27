@@ -138,7 +138,7 @@ def main():
     for r in recommendations:
         if r["ticker"] not in seen:
             seen.add(r["ticker"]); recs.append(r)
-    recs.sort(key=lambda x:({"BUY":0,"ACCUMULO":1,"WATCHLIST":2,"ATTESA":3}.get(x["label"],4),safe_num(x.get("composite_momentum")) or -1e9),reverse=False)
+    recs.sort(key=lambda x:({"BUY":0,"ACCUMULO":1,"WATCHLIST":2,"ATTESA":3}.get(x["label"],4),-(safe_num(x.get("composite_momentum")) if safe_num(x.get("composite_momentum")) is not None else -1e9)))
     recs=recs[:12]
 
     # ARRotation candidate is not an automatic BUY: honor its native state.

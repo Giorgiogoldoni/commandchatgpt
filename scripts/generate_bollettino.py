@@ -287,12 +287,6 @@ def main():
             if age is not None and age>=30 and "return_1m_pct" not in rec: rec["return_1m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=90 and "return_3m_pct" not in rec: rec["return_3m_pct"]=rec["return_since_entry_pct"]
             if age is not None and age>=180 and "return_6m_pct" not in rec: rec["return_6m_pct"]=rec["return_since_entry_pct"]
-    if os.getenv("ARCHIVE_EDITION","1")!="0":
-        edition_key=(local.date().isoformat(),report["edition"])
-        existing=[i for i,e in enumerate(editions) if (str(e.get("generated_local") or e.get("generated_utc") or "")[:10],e.get("edition"))==edition_key]
-        new_edition={"generated_utc":report["generated_utc"],"generated_local":report["generated_local"],"edition":report["edition"],"regime":regime,"benchmark":benchmark,"recommendations":[{"ticker":x["ticker"],"label":x["label"],"price":x.get("price"),"price_date":x.get("price_date"),"reason":x["reason"]} for x in recs],"buy_count":buy_count,"accumulate_count":accum_count}
-        if existing: editions[existing[0]]=new_edition
-        else: editions.append(new_edition)
         old_bench=edition.get("benchmark") or {}
         old_bench_base=safe_num(old_bench.get("price"))
         new_bench_price=safe_num(benchmark.get("price"))
@@ -304,6 +298,12 @@ def main():
             if age is not None and age>=90 and "return_3m_pct" not in old_bench: old_bench["return_3m_pct"]=old_bench["return_since_entry_pct"]
             if age is not None and age>=180 and "return_6m_pct" not in old_bench: old_bench["return_6m_pct"]=old_bench["return_since_entry_pct"]
             edition["benchmark"]=old_bench
+    if os.getenv("ARCHIVE_EDITION","1")!="0":
+        edition_key=(local.date().isoformat(),report["edition"])
+        existing=[i for i,e in enumerate(editions) if (str(e.get("generated_local") or e.get("generated_utc") or "")[:10],e.get("edition"))==edition_key]
+        new_edition={"generated_utc":report["generated_utc"],"generated_local":report["generated_local"],"edition":report["edition"],"regime":regime,"benchmark":benchmark,"recommendations":[{"ticker":x["ticker"],"label":x["label"],"price":x.get("price"),"price_date":x.get("price_date"),"reason":x["reason"]} for x in recs],"buy_count":buy_count,"accumulate_count":accum_count}
+        if existing: editions[existing[0]]=new_edition
+        else: editions.append(new_edition)
     hist={"schema_version":1,"description":"Archivio delle edizioni e rendimenti dei consigli rispetto al benchmark globale ACWI.MI; prezzi rettificati Yahoo Finance, proxy e non NAV ufficiale.","editions":editions[-365:]}
     hist_path.write_text(json.dumps(hist,ensure_ascii=False,indent=2),encoding="utf-8")
     print(json.dumps({"generated":report["generated_local"],"sources_ok":sum(1 for x in statuses.values() if x["ok"]),"sources_total":len(statuses),"regime":regime,"buy":buy_count,"accumulate":accum_count,"blockers":blockers},ensure_ascii=False))

@@ -82,6 +82,7 @@ jobs:
         run: |
           mkdir -p _site/data
           cp index.html _site/index.html
+          cp storico.html _site/storico.html
           cp -r data/. _site/data/
       - name: Carica sito
         if: github.event_name != 'schedule' || (steps.schedule_guard.outputs.run == 'true')

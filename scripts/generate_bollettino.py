@@ -225,9 +225,9 @@ def main():
             rec["latest_price"]=latest
             rec["latest_price_date"]=current["date"]
             rec["return_since_entry_pct"]=round((latest/base-1)*100,2)
-            if age is not None and age>=30: rec["return_1m_pct"]=rec["return_since_entry_pct"]
-            if age is not None and age>=90: rec["return_3m_pct"]=rec["return_since_entry_pct"]
-            if age is not None and age>=180: rec["return_6m_pct"]=rec["return_since_entry_pct"]
+            if age is not None and age>=30 and "return_1m_pct" not in rec: rec["return_1m_pct"]=rec["return_since_entry_pct"]
+            if age is not None and age>=90 and "return_3m_pct" not in rec: rec["return_3m_pct"]=rec["return_since_entry_pct"]
+            if age is not None and age>=180 and "return_6m_pct" not in rec: rec["return_6m_pct"]=rec["return_since_entry_pct"]
     editions.append({"generated_utc":report["generated_utc"],"generated_local":report["generated_local"],"edition":report["edition"],"regime":regime,"recommendations":[{"ticker":x["ticker"],"label":x["label"],"price":x.get("price"),"price_date":x.get("price_date"),"reason":x["reason"]} for x in recs],"buy_count":buy_count,"accumulate_count":accum_count})
     hist={"schema_version":1,"description":"Archivio delle edizioni; prezzi di riferimento, rendimenti osservati e decisioni salvati a ogni aggiornamento. Prezzi rettificati Yahoo: proxy, non NAV ufficiale.","editions":editions[-365:]}
     hist_path.write_text(json.dumps(hist,ensure_ascii=False,indent=2),encoding="utf-8")

@@ -132,9 +132,22 @@ def main():
     now=dt.datetime.now(dt.timezone.utc)
     local=now.astimezone(ZoneInfo("Europe/Rome"))
     data={k:fetch(k,u) for k,u in URLS.items()}
-    statuses={}
+    feed_status={}
     for name,obj in data.items():
-        statuses[name]={"ok":obj is not None,"source":URLS[name]}
+        feed_status[name]={"ok":obj is not None,"source":URLS[name]}
+    # Repository unici: riepiloga i feed tecnici interni senza duplicare i nomi.
+    source_groups={
+        "ARRotation":["ARRotation","Flussi ETFIQ","Selezione ARRotation"],
+        "BIGCHATGPT":["BIGCHATGPT"],
+        "GeografiaChatGPT":["GeografiaChatGPT","Geografia UCITS"],
+        "SniperChatGPT":["SniperChatGPT","Sniper RRG"],
+        "FactorChatGPT":["FactorChatGPT RRG"],
+        "TAX-ETP-MANAGER":["TAX snapshot","TAX storico","TAX strategia","TAX strumenti","TAX watchlist","TAX portafoglio"],
+    }
+    statuses={name:{"ok":all(feed_status[k]["ok"] for k in feeds),
+                    "feeds_ok":sum(1 for k in feeds if feed_status[k]["ok"]),
+                    "feeds_total":len(feeds)}
+             for name,feeds in source_groups.items()}
     rot=data["ARRotation"] or {}
     flows=data["Flussi ETFIQ"] or {}
     sel=data["Selezione ARRotation"] or {}

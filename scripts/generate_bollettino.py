@@ -268,6 +268,8 @@ def main():
     # Sniper is strictly paper-only and age-gated.
     sniper_age=age_days(sniper.get("generated_utc"))
     sniper_stale=sniper_age is None or sniper_age>1.5
+    big_age=age_days(big.get("gen"))
+    big_stale=big_age is None or big_age>1.5
     rotation_age=age_days(rot.get("generated"))
     geo_age=age_days(ucits.get("generated_at"))
     big_stale=big_age is None or big_age>1.5

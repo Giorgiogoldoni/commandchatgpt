@@ -69,11 +69,11 @@ footer{text-align:center;color:var(--muted);font-size:10px;margin-top:18px}
 <div class="links"><a href="https://giorgiogoldoni.github.io/geografiachatgpt/">Apri GeografiaChatGPT ↗</a></div>
 </section>
 <section class="card span-6">
-<h2>06 · Segnali quantitativi</h2><p class="hint">BIG fornisce i segnali tecnici; ARRotation filtra le candidature e le uscite.</p><div id="quant"></div>
+<h2>07 · Segnali quantitativi</h2><p class="hint">BIG fornisce i segnali tecnici; ARRotation filtra le candidature e le uscite.</p><div id="quant"></div>
 <div class="links"><a href="https://giorgiogoldoni.github.io/BIGCHATGPT/">Apri BIGCHATGPT ↗</a><a href="https://giorgiogoldoni.github.io/arrotation/">Apri ARRotation ↗</a></div>
 </section>
 <section class="card span-6">
-<h2>07 · Sniper e RRG</h2><p class="hint">Monitoraggio tattico, non utilizzato come ordine operativo.</p><div id="sniper"></div>
+<h2>08 · Sniper e RRG</h2><p class="hint">Monitoraggio tattico, non utilizzato come ordine operativo.</p><div id="sniper"></div>
 <div class="links"><a href="https://giorgiogoldoni.github.io/sniperchatgpt/">Apri SniperChatGPT ↗</a></div>
 </section>
 <section class="card span-6">
@@ -85,7 +85,7 @@ footer{text-align:center;color:var(--muted);font-size:10px;margin-top:18px}
 <div class="links"><a href="https://giorgiogoldoni.github.io/TAX-ETP-MANAGER/">Apri TAX ETP Manager ↗</a></div>
 </section>
 <section class="card span-12">
-<h2>11 · Affidabilità delle fonti</h2><p class="hint">Un feed non aggiornato riduce l'affidabilità del bollettino e può bloccare i BUY.</p><div class="status-grid" id="sources"></div>
+<h2>11 · Affidabilità dei 6 repository</h2><p class="hint">Ogni repository compare una sola volta; i feed interni sono riepilogati nel conteggio.</p><div class="status-grid" id="sources"></div>
 <div class="links"><a href="./storico.html">Apri storico consigli e rendimenti ↗</a></div>
 </section>
 </div>
@@ -144,7 +144,7 @@ async function loadReport(){
   const fa=r.factors||{},assets=fa.assets||[];
   $("factors").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n((fa.quadrants||{}).Leading,0)+'</b><span>Leading</span></div><div class="metric"><b>'+n((fa.quadrants||{}).Improving,0)+'</b><span>Improving</span></div><div class="metric"><b>'+n((fa.quadrants||{}).Weakening,0)+'</b><span>Weakening</span></div><div class="metric"><b>'+n((fa.quadrants||{}).Lagging,0)+'</b><span>Lagging</span></div></div><div class="small">Aggiornamento '+esc(fa.updated||"—")+' · Benchmark '+esc(fa.benchmark||"—")+' · '+esc(fa.method||"RRG")+'</div><ul class="clean">'+assets.slice(0,8).map(x=>'<li><span><b>'+esc(x.label||x.ticker)+'</b><br><span class="muted">'+esc(x.ticker)+'</span></span><span class="right">'+pill(x.quadrant||"—",x.quadrant==="Leading"?"ok":x.quadrant==="Improving"?"blue":"warn")+'<br><span class="muted">RS '+n(x.rs_ratio,2)+' · Mom '+n(x.rs_momentum,2)+'</span></span></li>').join("")+'</ul>'+(fa.stale?'<div class="warning">Feed RRG non aggiornato: non usare il ranking per nuove decisioni.</div>':'');
   const src=r.sources||{};
-  $("sources").innerHTML=Object.entries(src).map(([name,v])=>'<div class="source"><span>'+esc(name)+'</span>'+pill(v.ok?"OK":"ERRORE",v.ok?"ok":"bad")+'</div>').join("");
+  $("sources").innerHTML=Object.entries(src).map(([name,v])=>'<div class="source"><span>'+esc(name)+'</span>'+pill((v.ok?"OK":"ERRORE")+" · "+(v.feeds_ok??(v.ok?1:0))+"/"+(v.feeds_total??1),v.ok?"ok":"bad")+'</div>').join("");
   $("disclaimer").textContent=r.disclaimer||"Informazioni di supporto, non ordini automatici.";
  }catch(e){$("stamp").textContent=e.message;$("recommendations").innerHTML='<div class="warning">Il bollettino non è ancora disponibile. Usa di nuovo Aggiorna dopo il completamento del primo workflow.</div>';}
  finally{$("refresh").disabled=false;$("refresh").textContent="↻ Aggiorna bollettino";}

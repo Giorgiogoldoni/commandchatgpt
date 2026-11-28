@@ -369,7 +369,7 @@ def main():
     # Recommendation gate: if a required feed is missing/stale, downgrade any BUY.
     blockers=[]
     if not statuses["BIGCHATGPT"]["ok"]: blockers.append("Feed BIG non disponibile: BUY quantitativi sospesi.")
-    if not statuses["FactorChatGPT RRG"]["ok"]: blockers.append("Feed FactorChatGPT RRG non disponibile: fattori esclusi dal ranking.")
+    if not statuses["FactorChatGPT"]["ok"]: blockers.append("Feed FactorChatGPT RRG non disponibile: fattori esclusi dal ranking.")
     if not statuses["GeografiaChatGPT"]["ok"]: blockers.append("Feed geografico non disponibile: ranking geografici sospesi.")
     if not statuses["ARRotation"]["ok"]: blockers.append("Feed ARRotation non disponibile: conferme di rotazione sospese.")
     if tax_history_stale: blockers.append("TAX: storico prezzi mancante/obsoleto; segnali sul portafoglio sospesi.")

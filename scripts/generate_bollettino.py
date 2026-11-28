@@ -338,6 +338,8 @@ def main():
     factor_stale=factor_age is None or factor_age>3
     big_age=age_days(big.get("gen"))
     big_stale=big_age is None or big_age>1.5
+    big_age=age_days(big.get("gen"))
+    big_stale=big_age is None or big_age>1.5
     big_candidate_rows={str(x.get("t","")).upper():x for x in (big.get("righe",[]) or []) if isinstance(x,dict)}
     sector_theme_candidates=build_sector_theme_candidates(cats_sorted,factor_data,big_candidate_rows,big_stale)
     quadrant_order={"Leading":0,"Improving":1,"Weakening":2,"Lagging":3}

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-11-28T01:45:43.580582+00:00",
-  "generated_local": "2026-11-28T02:45:43.580582+01:00",
+  "generated_utc": "2026-11-28T01:46:17.979553+00:00",
+  "generated_local": "2026-11-28T02:46:17.979553+01:00",
   "edition": "STRAORDINARIA",
   "market": {
     "regime": "PRUDENZA SELETTIVA",
@@ -158,7 +158,7 @@
   },
   "geography": {
     "generated_at": "2026-11-27T16:08:19.616448+00:00",
-    "age_days": 0.40099031347222225,
+    "age_days": 0.4013916055902778,
     "stale": false,
     "latest_price_date": "2026-11-27",
     "trend_candidates": 7,
@@ -405,7 +405,7 @@
   },
   "rotation": {
     "generated": "2026-11-27 18:23 UTC",
-    "age_days": 0.30746735568287037,
+    "age_days": 0.30786864778935186,
     "stale": false,
     "latest_bar": "2026-11-27",
     "universe": 2342,
@@ -551,7 +551,7 @@
   },
   "big": {
     "generated": "2026-11-27 16:25 UTC",
-    "age_days": 0.3894118088657408,
+    "age_days": 0.38981310085648146,
     "stale": false,
     "rows": 2342,
     "systems": 12,
@@ -562,7 +562,7 @@
     "generated": "2026-11-26T10:32:09.371381+00:00",
     "paper_only": true,
     "signal_count": 126,
-    "age_days": 1.6344422237615743,
+    "age_days": 1.6348435158449073,
     "rrg_generated": "2026-11-27T16:09:22.388506+00:00",
     "rrg_instruments": 284,
     "rrg_fetch_ok": 284,
@@ -1016,7 +1016,7 @@
         "big_signal": "NON BUY",
         "big_match": true,
         "big_fresh": true,
-        "operational_label": "ACCUMULO POTENZIALE",
+        "operational_label": "WATCHLIST",
         "ranking_score": 9.56,
         "label": "CANDIDATO",
         "reason": "Filtro tecnico/categoria verificato; segnale BIG ticker-specific: NON BUY. BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."
@@ -1047,7 +1047,7 @@
         "big_signal": "NON BUY",
         "big_match": true,
         "big_fresh": true,
-        "operational_label": "ACCUMULO POTENZIALE",
+        "operational_label": "WATCHLIST",
         "ranking_score": 9.56,
         "label": "CANDIDATO",
         "reason": "Filtro tecnico/categoria verificato; segnale BIG ticker-specific: NON BUY. BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."
@@ -1078,7 +1078,7 @@
         "big_signal": "NON BUY",
         "big_match": true,
         "big_fresh": true,
-        "operational_label": "ACCUMULO POTENZIALE",
+        "operational_label": "WATCHLIST",
         "ranking_score": 8.49,
         "label": "CANDIDATO",
         "reason": "Filtro tecnico/categoria verificato; segnale BIG ticker-specific: NON BUY. BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."
@@ -1109,7 +1109,7 @@
         "big_signal": "NON BUY",
         "big_match": true,
         "big_fresh": true,
-        "operational_label": "ACCUMULO POTENZIALE",
+        "operational_label": "WATCHLIST",
         "ranking_score": 8.49,
         "label": "CANDIDATO",
         "reason": "Filtro tecnico/categoria verificato; segnale BIG ticker-specific: NON BUY. BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."
@@ -1140,7 +1140,7 @@
         "big_signal": "NON BUY",
         "big_match": true,
         "big_fresh": true,
-        "operational_label": "ACCUMULO POTENZIALE",
+        "operational_label": "WATCHLIST",
         "ranking_score": 8.48,
         "label": "CANDIDATO",
         "reason": "Filtro tecnico/categoria verificato; segnale BIG ticker-specific: NON BUY. BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."
@@ -1171,7 +1171,7 @@
         "big_signal": "NON BUY",
         "big_match": true,
         "big_fresh": true,
-        "operational_label": "ACCUMULO POTENZIALE",
+        "operational_label": "WATCHLIST",
         "ranking_score": 6.17,
         "label": "CANDIDATO",
         "reason": "Filtro tecnico/categoria verificato; segnale BIG ticker-specific: NON BUY. BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."
@@ -1712,7 +1712,7 @@
   },
   "factors": {
     "updated": "2026-11-27T16:08:00.480160+00:00",
-    "age_days": 0.4012118069675926,
+    "age_days": 0.4016130989236111,
     "stale": false,
     "benchmark": "SWDA.MI",
     "frequency": "weekly",
@@ -1883,7 +1883,7 @@
     "as_of": "2026-11-13",
     "snapshot_stale": true,
     "history_fetched_at": "2026-11-27T19:20:22+00:00",
-    "history_age_days": 0.2676293929861111,
+    "history_age_days": 0.26803068516203704,
     "history_latest_date": "2026-11-27",
     "history_status": "ok",
     "history_stale": false,

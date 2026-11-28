@@ -71,6 +71,49 @@ def fetch_yahoo_benchmark(symbol="ACWI.MI"):
                 "source":"Yahoo Finance adjusted close","currency":(result.get("meta") or {}).get("currency")}
     except Exception as e:
         print("BENCHMARK ERROR",repr(e)); return None
+def fetch_ticker_daily(symbol,days=370):
+    try:
+        end=int(dt.datetime.now(dt.timezone.utc).timestamp()); start=end-days*86400
+        url=f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={start}&period2={end}&interval=1d"
+        req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 CommandChatGPT/1.0"})
+        with urllib.request.urlopen(req,timeout=12) as response: payload=json.loads(response.read().decode("utf-8"))
+        result=payload["chart"]["result"][0]
+        stamps=result.get("timestamp",[]) or []
+        closes=(result.get("indicators",{}).get("quote") or [{}])[0].get("close") or []
+        values=[(dt.datetime.fromtimestamp(stamps[i],dt.timezone.utc).date().isoformat(),float(closes[i])) for i in range(min(len(stamps),len(closes))) if closes[i] is not None and float(closes[i])>0]
+        if len(values)<200: return None
+        prices=[x[1] for x in values]; last=prices[-1]; ma200=sum(prices[-200:])/200
+        roc38=(last/prices[-39]-1)*100 if len(prices)>=39 else None
+        gap=(last/ma200-1)*100
+        low=ma200*1.02; high=ma200*1.05
+        entry=("ZONA INGRESSO" if 2<=gap<=5 else "ATTENDERE CONSOLIDAMENTO" if 0<gap<2 else "ATTENDERE RITRACCIAMENTO" if 5<gap<=8 else "NON INSEGUIRE" if gap>8 else "SOTTO SMA200")
+        return {"ticker":symbol,"last_price":round(last,4),"last_date":values[-1][0],"sma200":round(ma200,4),"gap_sma200_pct":round(gap,2),"roc38_pct":round(roc38,2) if roc38 is not None else None,"entry_zone_low":round(low,4),"entry_zone_high":round(high,4),"entry_status":entry,"above_sma200":last>ma200,"trend_momentum":last>ma200 and (roc38 or -999)>0}
+    except Exception as e:
+        print("ETF CANDIDATE ERROR",symbol,repr(e)); return None
+def build_sector_theme_candidates(categories,rrg_data):
+    # Shortlist per strength category; ticker data individually validated via Yahoo daily history.
+    top=[x for x in categories if x.get("group") in ("Settori","Temi") and (safe_num(x.get("rel20")) or 0)>0]
+    top.sort(key=lambda x:safe_num(x.get("score")) if safe_num(x.get("score")) is not None else -1e9,reverse=True)
+    symbols=[]
+    for category in top[:8]:
+        for ticker in (category.get("tickers") or [])[:3]:
+            if ticker not in symbols: symbols.append(ticker)
+    rrgmap={str(a.get("ticker","")).upper():a for a in (rrg_data.get("assets") or [])}
+    results=[]
+    for ticker in symbols[:24]:
+        quote=fetch_ticker_daily(ticker)
+        if not quote: continue
+        category=next((x for x in top if ticker in (x.get("tickers") or [])),{})
+        rrg=rrgmap.get(ticker.upper(),{})
+        quadrant=rrg.get("quadrant")
+        entry=quote.get("entry_status")
+        category_confirm=(safe_num(category.get("rel20")) or 0)>0 and (safe_num(category.get("breadth20")) or 0)>=60
+        # Ranking label is deliberately not a buy: requires downstream BIG cross-check and validation.
+        score=(safe_num(category.get("score")) or 0)+(3 if quote["trend_momentum"] else 0)+(2 if quadrant in ("Leading","Improving") else 0)+(1 if entry=="ZONA INGRESSO" else 0)
+        results.append({**quote,"group":category.get("group"),"category":category.get("category"),"category_score":category.get("score"),"category_rel20":category.get("rel20"),"category_breadth20":category.get("breadth20"),"category_status":category.get("status"),"rrg_quadrant":quadrant,"rrg_rs_ratio":(rrg.get("trail") or [{}])[-1].get("x"),"rrg_rs_momentum":(rrg.get("trail") or [{}])[-1].get("y"),"category_confirmed":category_confirm,"ranking_score":round(score,2),"label":"CANDIDATO" if category_confirm and quote["trend_momentum"] and entry=="ZONA INGRESSO" else "WATCHLIST","reason":"Categoria con forza relativa positiva; prezzo e SMA200 verificati su storico giornaliero. BUY non consentito senza verifica BIG e controlli di rischio."})
+    results.sort(key=lambda x:(x["label"]!="CANDIDATO",-x["ranking_score"]))
+    return results
+
 def state_text(row):
     v=row.get("sta")
     if isinstance(v,list): return " ".join(map(str,v)).upper()
@@ -287,6 +330,7 @@ def main():
         })
     factor_age=age_days(factor_data.get("updated"))
     factor_stale=factor_age is None or factor_age>3
+    sector_theme_candidates=build_sector_theme_candidates(cats_sorted,factor_data)
     quadrant_order={"Leading":0,"Improving":1,"Weakening":2,"Lagging":3}
     tax_factor_assets.sort(key=lambda x:(quadrant_order.get(x.get("quadrant"),4),x.get("factor") or "",x.get("ticker") or ""))
     # Recommendation gate: if a required feed is missing/stale, downgrade any BUY.
@@ -317,7 +361,7 @@ def main():
       "rotation":{"generated":rot.get("generated"),"age_days":rotation_age,"stale":rotation_stale,"latest_bar":rot.get("latest_bar"),"universe":rot.get("universe"),"eligible":rot.get("eligible"),"loaded":rot.get("tickers_loaded"),"candidate_count":(sel.get("riepilogo") or {}).get("candidati"),"exit_count":(sel.get("riepilogo") or {}).get("uscite"),"open_signals":(sel.get("riepilogo") or {}).get("segnalazioni_aperte"),"candidates":ar_candidates,"top_categories":top_categories},
       "big":{"generated":big.get("gen"),"age_days":big_age,"stale":big_stale,"rows":len(big.get("righe",[]) or []),"systems":len(big.get("sistemi",[]) or []),"buy_count":buy_count,"accumulate_count":accum_count},
       "sniper":{"generated":sniper.get("generated_utc"),"paper_only":bool(sniper.get("paper_only",True)),"signal_count":sniper.get("signal_count",len(sniper.get("signals",[]) or [])),"age_days":sniper_age,"rrg_generated":rrg.get("generated_utc"),"rrg_instruments":rrg.get("instruments"),"rrg_fetch_ok":(rrg.get("fetch_status") or {}).get("ok"),"rrg_fetch_total":(rrg.get("fetch_status") or {}).get("total")},
-      "sector_themes":{"as_of":rot.get("latest_bar"),"categories":sector_theme_categories,"sector_count":sum(1 for x in sector_theme_categories if x.get("group")=="Settori"),"theme_count":sum(1 for x in sector_theme_categories if x.get("group")=="Temi"),"method":"Rotazione relativa basata su prezzi, non flussi monetari."},
+      "sector_themes":{"as_of":rot.get("latest_bar"),"categories":sector_theme_categories,"candidates":sector_theme_candidates,"candidate_count":len(sector_theme_candidates),"verified_quotes":len(sector_theme_candidates),"sector_count":sum(1 for x in sector_theme_categories if x.get("group")=="Settori"),"theme_count":sum(1 for x in sector_theme_categories if x.get("group")=="Temi"),"method":"Rotazione relativa categoria; prezzi ticker da Yahoo daily, candidati non BUY."},
       "factors":{"updated":factor_data.get("updated"),"age_days":factor_age,"stale":factor_stale,"benchmark":factor_data.get("benchmark"),"frequency":factor_data.get("frequency"),"method":factor_data.get("method"),"assets":tax_factor_assets,"quadrants":{q:sum(1 for x in tax_factor_assets if x.get("quadrant")==q) for q in ("Leading","Improving","Weakening","Lagging")}},
       "tax":{"as_of":tax.get("as_of"),"snapshot_stale":tax_age is None or tax_age>3,"history_fetched_at":tax_history.get("fetched_at"),"history_age_days":tax_history_age,"history_latest_date":tax_history_last,"history_status":tax_history.get("status"),"history_stale":tax_history_stale,"history_instruments":tax_covered,"history_unresolved":len(tax_history.get("unresolved",[]) or []),"instrument_count":len(instruments.get("instruments",[]) or []),"watchlist_count":len(watch.get("tickers",[]) or []),"portfolio_positions":len(portfolio.get("positions",[]) or []),"position_signals":tax_position_signals,"strategy":strat.get("model_name"),"roc":(strat.get("parameters") or {}).get("roc_period"),"ma_fast":(strat.get("parameters") or {}).get("moving_average_fast"),"ma_slow":(strat.get("parameters") or {}).get("moving_average_slow")},
       "recommendations":recs,"buy_count":buy_count,"accumulate_count":accum_count,"blockers":blockers,

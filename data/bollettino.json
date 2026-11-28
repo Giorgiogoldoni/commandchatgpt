@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_utc": "2026-11-28T01:48:04.419140+00:00",
-  "generated_local": "2026-11-28T02:48:04.419140+01:00",
+  "generated_utc": "2026-11-28T01:53:11.846753+00:00",
+  "generated_local": "2026-11-28T02:53:11.846753+01:00",
   "edition": "STRAORDINARIA",
   "market": {
     "regime": "PRUDENZA SELETTIVA",
@@ -158,7 +158,7 @@
   },
   "geography": {
     "generated_at": "2026-11-27T16:08:19.616448+00:00",
-    "age_days": 0.40260749640046295,
+    "age_days": 0.4061764431828704,
     "stale": false,
     "latest_price_date": "2026-11-27",
     "trend_candidates": 7,
@@ -405,7 +405,7 @@
   },
   "rotation": {
     "generated": "2026-11-27 18:23 UTC",
-    "age_days": 0.30908453859953705,
+    "age_days": 0.3126534853819445,
     "stale": false,
     "latest_bar": "2026-11-27",
     "universe": 2342,
@@ -551,7 +551,7 @@
   },
   "big": {
     "generated": "2026-11-27 16:25 UTC",
-    "age_days": 0.3910290025578704,
+    "age_days": 0.39459794106481483,
     "stale": false,
     "rows": 2342,
     "systems": 12,
@@ -562,7 +562,7 @@
     "generated": "2026-11-26T10:32:09.371381+00:00",
     "paper_only": true,
     "signal_count": 126,
-    "age_days": 1.6360594066666665,
+    "age_days": 1.6396283534953704,
     "rrg_generated": "2026-11-27T16:09:22.388506+00:00",
     "rrg_instruments": 284,
     "rrg_fetch_ok": 284,
@@ -1808,7 +1808,7 @@
   },
   "factors": {
     "updated": "2026-11-27T16:08:00.480160+00:00",
-    "age_days": 0.402829000625,
+    "age_days": 0.40639793913194444,
     "stale": false,
     "benchmark": "SWDA.MI",
     "frequency": "weekly",
@@ -1979,7 +1979,7 @@
     "as_of": "2026-11-13",
     "snapshot_stale": true,
     "history_fetched_at": "2026-11-27T19:20:22+00:00",
-    "history_age_days": 0.26924657586805556,
+    "history_age_days": 0.27281552262731484,
     "history_latest_date": "2026-11-27",
     "history_status": "ok",
     "history_stale": false,
@@ -2521,63 +2521,33 @@
   "sources": {
     "ARRotation": {
       "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/arrotation/main/data/rotation.json"
-    },
-    "Flussi ETFIQ": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/arrotation/main/data/flows.json"
-    },
-    "Selezione ARRotation": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/arrotation/main/data/selezione.json"
+      "feeds_ok": 3,
+      "feeds_total": 3
     },
     "BIGCHATGPT": {
       "ok": true,
-      "source": "https://giorgiogoldoni.github.io/BIGCHATGPT/data/index.json"
+      "feeds_ok": 1,
+      "feeds_total": 1
     },
     "GeografiaChatGPT": {
       "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/geografia-motore.json"
-    },
-    "Geografia UCITS": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/geografiachatgpt/main/ucits_geography.json"
+      "feeds_ok": 2,
+      "feeds_total": 2
     },
     "SniperChatGPT": {
       "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/current_signals.json"
+      "feeds_ok": 2,
+      "feeds_total": 2
     },
-    "Sniper RRG": {
+    "FactorChatGPT": {
       "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/sniperchatgpt/main/reports/sniper_rrg_summary.json"
+      "feeds_ok": 1,
+      "feeds_total": 1
     },
-    "FactorChatGPT RRG": {
+    "TAX-ETP-MANAGER": {
       "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/Factorchatgpt/main/data/rrg.json"
-    },
-    "TAX snapshot": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/market_snapshot.json"
-    },
-    "TAX storico": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/history.json"
-    },
-    "TAX strategia": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/strategy.json"
-    },
-    "TAX strumenti": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/instruments.json"
-    },
-    "TAX watchlist": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/watchlist.json"
-    },
-    "TAX portafoglio": {
-      "ok": true,
-      "source": "https://raw.githubusercontent.com/Giorgiogoldoni/TAX-ETP-MANAGER/main/data/portfolio.json"
+      "feeds_ok": 6,
+      "feeds_total": 6
     }
   },
   "disclaimer": "Bollettino quantitativo informativo. BUY richiede conferma simultanea BIG + trend geografico + rotazione positiva; ACCUMULO richiede trend geografico e rotazione positiva. Nessun ordine automatico. I segnali Sniper paper-only sono esclusi."

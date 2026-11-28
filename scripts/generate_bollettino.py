@@ -90,7 +90,7 @@ def fetch_ticker_daily(symbol,days=370):
         return {"ticker":symbol,"last_price":round(last,4),"last_date":values[-1][0],"sma200":round(ma200,4),"gap_sma200_pct":round(gap,2),"roc38_pct":round(roc38,2) if roc38 is not None else None,"entry_zone_low":round(low,4),"entry_zone_high":round(high,4),"entry_status":entry,"above_sma200":last>ma200,"trend_momentum":last>ma200 and (roc38 or -999)>0}
     except Exception as e:
         print("ETF CANDIDATE ERROR",symbol,repr(e)); return None
-def build_sector_theme_candidates(categories,rrg_data):
+def build_sector_theme_candidates(categories,rrg_data,big_rows,big_stale):
     # Shortlist per strength category; ticker data individually validated via Yahoo daily history.
     top=[x for x in categories if x.get("group") in ("Settori","Temi") and (safe_num(x.get("rel20")) or 0)>0]
     top.sort(key=lambda x:safe_num(x.get("score")) if safe_num(x.get("score")) is not None else -1e9,reverse=True)
@@ -108,9 +108,16 @@ def build_sector_theme_candidates(categories,rrg_data):
         quadrant=rrg.get("quadrant")
         entry=quote.get("entry_status")
         category_confirm=(safe_num(category.get("rel20")) or 0)>0 and (safe_num(category.get("breadth20")) or 0)>=60
-        # Ranking label is deliberately not a buy: requires downstream BIG cross-check and validation.
+        big_row=big_rows.get(ticker.upper())
+        big_state=state_text(big_row) if big_row else "NON PRESENTE"
+        big_exit=("EXIT" in big_state or "ESCI" in big_state or "SELL" in big_state)
+        big_buy=("BUY" in big_state and not big_exit)
+        big_signal=("BUY" if big_buy else "VETO/EXIT" if big_exit else "NON BUY" if big_row else "NON PRESENTE")
+        technical_ok=category_confirm and quote["trend_momentum"] and entry=="ZONA INGRESSO"
+        operational_label=("BUY POTENZIALE" if technical_ok and big_buy and not big_stale else
+                           "ACCUMULO POTENZIALE" if technical_ok and big_row and not big_exit and not big_stale else "WATCHLIST")
         score=(safe_num(category.get("score")) or 0)+(3 if quote["trend_momentum"] else 0)+(2 if quadrant in ("Leading","Improving") else 0)+(1 if entry=="ZONA INGRESSO" else 0)
-        results.append({**quote,"group":category.get("group"),"category":category.get("category"),"category_score":category.get("score"),"category_rel20":category.get("rel20"),"category_breadth20":category.get("breadth20"),"category_status":category.get("status"),"rrg_quadrant":quadrant,"rrg_rs_ratio":(rrg.get("trail") or [{}])[-1].get("x"),"rrg_rs_momentum":(rrg.get("trail") or [{}])[-1].get("y"),"category_confirmed":category_confirm,"ranking_score":round(score,2),"label":"CANDIDATO" if category_confirm and quote["trend_momentum"] and entry=="ZONA INGRESSO" else "WATCHLIST","reason":"Categoria con forza relativa positiva; prezzo e SMA200 verificati su storico giornaliero. BUY non consentito senza verifica BIG e controlli di rischio."})
+        results.append({**quote,"group":category.get("group"),"category":category.get("category"),"category_score":category.get("score"),"category_rel20":category.get("rel20"),"category_breadth20":category.get("breadth20"),"category_status":category.get("status"),"rrg_quadrant":quadrant,"rrg_rs_ratio":(rrg.get("trail") or [{}])[-1].get("x"),"rrg_rs_momentum":(rrg.get("trail") or [{}])[-1].get("y"),"category_confirmed":category_confirm,"big_state":big_state,"big_signal":big_signal,"big_match":bool(big_row),"big_fresh":not big_stale,"operational_label":operational_label,"ranking_score":round(score,2),"label":"CANDIDATO" if technical_ok else "WATCHLIST","reason":"Filtro tecnico/categoria verificato; segnale BIG ticker-specific: "+big_signal+(" (feed stale)" if big_stale else "")+". BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."})
     results.sort(key=lambda x:(x["label"]!="CANDIDATO",-x["ranking_score"]))
     return results
 
@@ -261,7 +268,6 @@ def main():
     # Sniper is strictly paper-only and age-gated.
     sniper_age=age_days(sniper.get("generated_utc"))
     sniper_stale=sniper_age is None or sniper_age>1.5
-    big_age=age_days(big.get("gen"))
     rotation_age=age_days(rot.get("generated"))
     geo_age=age_days(ucits.get("generated_at"))
     big_stale=big_age is None or big_age>1.5
@@ -330,7 +336,10 @@ def main():
         })
     factor_age=age_days(factor_data.get("updated"))
     factor_stale=factor_age is None or factor_age>3
-    sector_theme_candidates=build_sector_theme_candidates(cats_sorted,factor_data)
+    big_age=age_days(big.get("gen"))
+    big_stale=big_age is None or big_age>1.5
+    big_candidate_rows={str(x.get("t","")).upper():x for x in (big.get("righe",[]) or []) if isinstance(x,dict)}
+    sector_theme_candidates=build_sector_theme_candidates(cats_sorted,factor_data,big_candidate_rows,big_stale)
     quadrant_order={"Leading":0,"Improving":1,"Weakening":2,"Lagging":3}
     tax_factor_assets.sort(key=lambda x:(quadrant_order.get(x.get("quadrant"),4),x.get("factor") or "",x.get("ticker") or ""))
     # Recommendation gate: if a required feed is missing/stale, downgrade any BUY.

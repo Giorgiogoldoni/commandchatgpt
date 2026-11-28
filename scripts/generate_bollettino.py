@@ -112,10 +112,11 @@ def build_sector_theme_candidates(categories,rrg_data,big_rows,big_stale):
         big_state=state_text(big_row) if big_row else "NON PRESENTE"
         big_exit=("EXIT" in big_state or "ESCI" in big_state or "SELL" in big_state)
         big_buy=("BUY" in big_state and not big_exit)
-        big_signal=("BUY" if big_buy else "VETO/EXIT" if big_exit else "NON BUY" if big_row else "NON PRESENTE")
+        big_accumulate=("ACCUMULA" in big_state or "ACCUMULATE" in big_state or "ADD" in big_state) and not big_exit
+        big_signal=("BUY" if big_buy else "ACCUMULA" if big_accumulate else "VETO/EXIT" if big_exit else "NON BUY" if big_row else "NON PRESENTE")
         technical_ok=category_confirm and quote["trend_momentum"] and entry=="ZONA INGRESSO"
         operational_label=("BUY POTENZIALE" if technical_ok and big_buy and not big_stale else
-                           "ACCUMULO POTENZIALE" if technical_ok and big_row and not big_exit and not big_stale else "WATCHLIST")
+                           "ACCUMULO POTENZIALE" if technical_ok and big_accumulate and not big_stale else "WATCHLIST")
         score=(safe_num(category.get("score")) or 0)+(3 if quote["trend_momentum"] else 0)+(2 if quadrant in ("Leading","Improving") else 0)+(1 if entry=="ZONA INGRESSO" else 0)
         results.append({**quote,"group":category.get("group"),"category":category.get("category"),"category_score":category.get("score"),"category_rel20":category.get("rel20"),"category_breadth20":category.get("breadth20"),"category_status":category.get("status"),"rrg_quadrant":quadrant,"rrg_rs_ratio":(rrg.get("trail") or [{}])[-1].get("x"),"rrg_rs_momentum":(rrg.get("trail") or [{}])[-1].get("y"),"category_confirmed":category_confirm,"big_state":big_state,"big_signal":big_signal,"big_match":bool(big_row),"big_fresh":not big_stale,"operational_label":operational_label,"ranking_score":round(score,2),"label":"CANDIDATO" if technical_ok else "WATCHLIST","reason":"Filtro tecnico/categoria verificato; segnale BIG ticker-specific: "+big_signal+(" (feed stale)" if big_stale else "")+". BUY potenziale solo con BIG BUY fresco, conferma categoria, momentum e zona ingresso."})
     results.sort(key=lambda x:(x["label"]!="CANDIDATO",-x["ranking_score"]))

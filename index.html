@@ -58,11 +58,14 @@ footer{text-align:center;color:var(--muted);font-size:10px;margin-top:18px}
 <h2>03 · Rotazione settoriale e tematica</h2><p class="hint">Rendimenti mediani e forza relativa: sono proxy di rotazione, non flussi monetari.</p>
 <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Gruppo</th><th>20 sedute</th><th>RS 20</th><th>Ampiezza</th><th>Stato</th></tr></thead><tbody id="categories"></tbody></table></div>
 </section>
+<section class="card span-12">
+<h2>04 · ETF settori e temi: shortlist strumenti</h2><p class="hint">Ticker selezionati dalle categorie più forti. Prezzi e SMA200 sono verificati singolarmente. CANDIDATO significa filtro tecnico superato, non BUY: manca la conferma completa BIG e la validazione finale.</p><div id="sector-candidates"></div>
+</section>
 <section class="card span-5">
-<h2>04 · Flussi ETF effettivi</h2><p class="hint">Fonte ETFIQ · sottoscrizioni e rimborsi aggregati</p><div id="flows"></div>
+<h2>05 · Flussi ETF effettivi</h2><p class="hint">Fonte ETFIQ · sottoscrizioni e rimborsi aggregati</p><div id="flows"></div>
 </section>
 <section class="card span-6">
-<h2>05 · Geografia</h2><p class="hint">Filtro trend: prezzo sopra SMA200 e momentum a 12 mesi positivo.</p><div id="geography"></div>
+<h2>06 · Geografia</h2><p class="hint">Filtro trend: prezzo sopra SMA200 e momentum a 12 mesi positivo.</p><div id="geography"></div>
 <div class="links"><a href="https://giorgiogoldoni.github.io/geografiachatgpt/">Apri GeografiaChatGPT ↗</a></div>
 </section>
 <section class="card span-6">
@@ -74,15 +77,15 @@ footer{text-align:center;color:var(--muted);font-size:10px;margin-top:18px}
 <div class="links"><a href="https://giorgiogoldoni.github.io/sniperchatgpt/">Apri SniperChatGPT ↗</a></div>
 </section>
 <section class="card span-6">
-<h2>08 · Fattori e RRG</h2><p class="hint">Rotazione relativa dei fattori. RRG pubblico approssimato, non indicatore proprietario JdK e non segnale autonomo.</p><div id="factors"></div>
+<h2>09 · Fattori e RRG</h2><p class="hint">Rotazione relativa dei fattori. RRG pubblico approssimato, non indicatore proprietario JdK e non segnale autonomo.</p><div id="factors"></div>
 <div class="links"><a href="https://giorgiogoldoni.github.io/Factorchatgpt/rrg.html">Apri FactorChatGPT RRG ↗</a></div>
 </section>
 <section class="card span-6">
-<h2>09 · Portafoglio e strategia TAX</h2><p class="hint">Indicatori calcolati sullo storico prezzi scaricato; nessuna decisione se la serie è incompleta o obsoleta.</p><div id="tax"></div>
+<h2>10 · Portafoglio e strategia TAX</h2><p class="hint">Indicatori calcolati sullo storico prezzi scaricato; nessuna decisione se la serie è incompleta o obsoleta.</p><div id="tax"></div>
 <div class="links"><a href="https://giorgiogoldoni.github.io/TAX-ETP-MANAGER/">Apri TAX ETP Manager ↗</a></div>
 </section>
 <section class="card span-12">
-<h2>10 · Affidabilità delle fonti</h2><p class="hint">Un feed non aggiornato riduce l'affidabilità del bollettino e può bloccare i BUY.</p><div class="status-grid" id="sources"></div>
+<h2>11 · Affidabilità delle fonti</h2><p class="hint">Un feed non aggiornato riduce l'affidabilità del bollettino e può bloccare i BUY.</p><div class="status-grid" id="sources"></div>
 <div class="links"><a href="./storico.html">Apri storico consigli e rendimenti ↗</a></div>
 </section>
 </div>
@@ -130,6 +133,8 @@ async function loadReport(){
   $("blockers").innerHTML=(r.blockers||[]).map(x=>'<div class="warning">'+esc(x)+'</div>').join("");
   const st=r.sector_themes||{};
   $("categories").innerHTML=(st.categories||m.top_categories||[]).slice(0,16).map(x=>'<tr><td><b>'+esc(x.category)+'</b></td><td>'+esc(x.group)+'</td><td>'+n(x.ret20,2)+'%</td><td>'+n(x.rel20,2)+'%</td><td>'+n(x.breadth20,0)+'%</td><td>'+esc(x.status)+'</td></tr>').join("")||'<tr><td colspan="6">Dati non disponibili</td></tr>';
+  const cand=st.candidates||[];
+  $("sector-candidates").innerHTML='<div class="small">Quotazioni verificate: '+n(st.verified_quotes,0)+' · aggiornamento '+esc(st.as_of||"—")+'</div><div class="table-wrap"><table><thead><tr><th>ETF</th><th>Categoria</th><th>Prezzo</th><th>Gap SMA200</th><th>ROC38</th><th>RRG</th><th>Zona ingresso</th><th>Filtro</th></tr></thead><tbody>'+cand.slice(0,20).map(x=>'<tr><td><b>'+esc(x.ticker)+'</b></td><td>'+esc(x.category||"—")+'</td><td>'+n(x.last_price,2)+'</td><td>'+n(x.gap_sma200_pct,2)+'%</td><td>'+n(x.roc38_pct,2)+'%</td><td>'+esc(x.rrg_quadrant||"—")+'</td><td>'+n(x.entry_zone_low,2)+'–'+n(x.entry_zone_high,2)+'<br>'+esc(x.entry_status||"—")+'</td><td>'+pill(x.label||"WATCHLIST",x.label==="CANDIDATO"?"ok":"warn")+'</td></tr>').join("")+'</tbody></table></div>'+(cand.length?'':'<div class="warning">Nessun ticker con storico valido: shortlist non disponibile.</div>');
   $("flows").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+money(f.flow_usd)+'</b><span>Flussi netti aggregati</span></div><div class="metric"><b>'+n(f.flow_pct_assets,2)+'%</b><span>Flussi / patrimonio iniziale</span></div><div class="metric"><b>'+money(f.inflows_usd)+'</b><span>Afflussi</span></div><div class="metric"><b>'+money(f.outflows_usd)+'</b><span>Deflussi</span></div></div><p class="small">As of '+esc(f.as_of||"—")+' · '+esc(f.quality||"")+'. Flussi non equivalgono a performance dei prezzi.</p>';
   $("geography").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n(g.trend_candidates,0)+'</b><span>Strumenti con trend confermato</span></div><div class="metric"><b>'+esc(g.latest_price_date||"—")+'</b><span>Ultima seduta prezzi</span></div></div><ul class="clean">'+(g.top||[]).slice(0,5).map(x=>'<li><span><b>'+esc(x.ticker)+'</b><br><span class="muted">'+esc(x.geography||x.name)+'</span></span><span class="right">'+pct(x.composite_momentum)+'<br><span class="muted">momentum composito</span></span></li>').join("")+'</ul>';
   $("quant").innerHTML='<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><b>'+n(b.rows,0)+'</b><span>ETF con dati BIG</span></div><div class="metric"><b>'+n(b.systems,0)+'</b><span>Sistemi tecnici</span></div><div class="metric"><b>'+n(a.candidate_count,0)+'</b><span>Candidati ARRotation</span></div><div class="metric"><b>'+n(a.exit_count,0)+'</b><span>Uscite rilevate</span></div></div><ul class="clean">'+(a.candidates||[]).map(x=>'<li><span><b>'+esc(x.ticker)+'</b><br><span class="muted">'+esc(x.name)+'</span></span><span class="right">'+pill(x.state,x.state==="BUY"?"ok":"warn")+'<br><span class="muted">'+esc(x.system)+'</span></span></li>').join("")+'</ul>';
